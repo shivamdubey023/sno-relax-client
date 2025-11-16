@@ -6,6 +6,7 @@ import {
   Paperclip,
   Gamepad
 } from "lucide-react";
+import StartupModal from "../components/StartupModal";
 import "../styles/Dashboard.css";
 
 export default function Dashboard({ isLoggedIn, onLogout }) {
@@ -68,6 +69,61 @@ export default function Dashboard({ isLoggedIn, onLogout }) {
     else navigate(path);
   };
 
+    const [startupVisible, setStartupVisible] = React.useState(false);
+    const [startupContent, setStartupContent] = React.useState('');
+
+    // Try to fetch admin popup content; fall back to localStorage.
+    React.useEffect(() => {
+      let mounted = true;
+      const fetchPopup = async () => {
+        const versionKey = 'admin_popup_version';
+        const dismissedKey = 'admin_popup_dismissed_version';
+        const defaultContent = '<h3>Announcement</h3><p>No announcements at this time.</p>';
+        // allow dev override via query param ?showPopup=1
+        const urlParams = new URLSearchParams(window.location.search);
+        const forceShow = urlParams.get('showPopup') === '1' || window.location.hostname === 'localhost';
+
+        // Helper to show content if not dismissed
+        const showIfNeeded = (contentHtml, version) => {
+          // use default if missing
+          const resolvedContent = contentHtml && String(contentHtml).trim() ? contentHtml : defaultContent;
+          const dismissed = localStorage.getItem(dismissedKey) || '';
+          const currentVersion = version || localStorage.getItem(versionKey) || '1';
+          if (!forceShow && dismissed === currentVersion) return; // already dismissed (unless forced)
+          localStorage.setItem(versionKey, currentVersion);
+          if (mounted) {
+            setStartupContent(resolvedContent);
+            setStartupVisible(true);
+          }
+        };
+
+        try {
+          const res = await fetch(`${API_BASE}/api/admin/popup`);
+          console.debug('admin/popup status', res.status);
+          if (res.ok) {
+            const data = await res.json();
+            // expected shape: { content: '<p>...</p>', version: 'v2' }
+            console.debug('admin/popup payload', data);
+            showIfNeeded(data.content || '', data.version || '1');
+            return;
+          } else {
+            console.warn('admin/popup returned non-ok status', res.status);
+          }
+        } catch (e) {
+          console.error('Failed to fetch admin popup:', e && e.message ? e.message : e);
+          // ignore and try localStorage fallback
+        }
+
+        // localStorage fallback: admin might have set `admin_popup_content` and `admin_popup_version`
+        const stored = localStorage.getItem('admin_popup_content');
+        const storedVersion = localStorage.getItem('admin_popup_version') || '1';
+        showIfNeeded(stored || '', storedVersion);
+      };
+
+      fetchPopup();
+      return () => { mounted = false; };
+    }, [API_BASE]);
+
   return (
     <div className="dashboard-container">
       <aside className={`sidebar ${sidebarOpen ? "open" : "closed"}`}>
@@ -87,6 +143,15 @@ export default function Dashboard({ isLoggedIn, onLogout }) {
       </aside>
 
       <main className="main-content">
+        <StartupModal
+          visible={startupVisible}
+          content={startupContent}
+          onClose={() => {
+            const version = localStorage.getItem('admin_popup_version') || '1';
+            localStorage.setItem('admin_popup_dismissed_version', version);
+            setStartupVisible(false);
+          }}
+        />
         <div className="topbar">
           <button
             className={`hamburger ${sidebarOpen ? "active" : ""}`}
