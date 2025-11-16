@@ -229,7 +229,8 @@
 .message-bubble.bot {
   /* Bot/other people's bubbles default to white with dark text; themes may override */
   background: var(--bot-bubble-bg, #ffffff);
-  color: var(--bot-text, #333);
+  /* Make bot/therapist text black for improved visibility */
+  color: var(--bot-text, #000);
   border: 1px solid rgba(0,0,0,0.08);
 }
 

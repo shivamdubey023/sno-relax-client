@@ -124,6 +124,26 @@ export default function Chatbot() {
           finalText = await translate(d.text, "en", lang);
         }
         setMsgs(p => [...p, { t: "bot", txt: finalText }]);
+        // If server returned mood analysis, append a summary message with habit tips
+        if (d.moodAnalysis) {
+          try {
+            const ma = d.moodAnalysis;
+            const mood = ma.mood || (ma.label || 'neutral');
+            const habits = Array.isArray(ma.habits) ? ma.habits : [];
+            let suggestionText = `Mood: ${mood}`;
+            if (habits.length) {
+              suggestionText += '\nSuggestions:';
+              habits.slice(0,3).forEach((h, idx) => {
+                const title = h.title || h.name || `Tip ${idx+1}`;
+                const desc = h.description || h.desc || '';
+                suggestionText += `\n${idx+1}. ${title}: ${desc}`;
+              });
+            }
+            setMsgs(p => [...p, { t: "bot", txt: suggestionText }]);
+          } catch (e) {
+            console.warn('Failed to render moodAnalysis:', e);
+          }
+        }
         
         if (isMic) {
           speak(finalText, lang || "en");

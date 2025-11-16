@@ -109,7 +109,8 @@ export default function Dashboard({ isLoggedIn, onLogout }) {
           <div className="widgets">
           <div className={`widget ${!isLoggedIn ? "disabled" : ""}`} onClick={() => requireLogin("/chatbot")}><Bot size={28} /><h3>AI Chatbot</h3><p>Talk with SnoBot for stress relief and support.</p></div>
           <div className={`widget ${!isLoggedIn ? "disabled" : ""}`} onClick={() => requireLogin("/mood-tracker")}><BookOpen size={28} /><h3>Mood Tracker</h3><p>Log your daily mood & monitor changes.</p></div>
-          <div className={`widget ${!isLoggedIn ? "disabled" : ""}`} onClick={() => requireLogin("/ai-guide")}><Handshake size={28} /><h3>AI Therapist Guide</h3><p>AI-guided therapist recommendations and routines.</p></div>
+          <div className={`widget ${!isLoggedIn ? "disabled" : ""}`} onClick={() => requireLogin("/ai-guide")}><Handshake size={28} /><h3>AI Health Guide</h3><p>AI-guided Health Assistant recommendations and routines.</p></div>
+          <div className={`widget ${!isLoggedIn ? "disabled" : ""}`} onClick={() => requireLogin("/ai-guide")}><Paperclip size={28} /><h3>Therapist Notes</h3><p>Admin recommendations Guide.</p></div>
           <div className={`widget ${!isLoggedIn ? "disabled" : ""}`}><Hospital size={28} /><h3>Hospital Reports</h3><p>Store prescriptions & medical history.</p></div>
 
           {/* HealthVault always active */}

@@ -86,8 +86,8 @@ export default function AIGuide() {
       {loading && <p>Generating personalized guide...</p>}
       {guide && (
         <div style={{ marginTop: 12 }}>
-          <div style={{ padding: 12, borderRadius: 8, background: guide.level === 'severe' ? '#fff1f2' : '#f0f9ff', color: '#000' }}>
-            <p style={{ margin: 0, color: '#000' }}>{guide.text || guide.summary}</p>
+          <div style={{ padding: 12, borderRadius: 8, background: guide.level === 'severe' ? '#fff1f2' : '#f0f9ff', color: 'var(--app-foreground, #000)' }}>
+            <p style={{ margin: 0, color: 'var(--app-foreground, #000)' }}>{guide.text || guide.summary}</p>
           </div>
 
           {guide.recommendations && guide.recommendations.length > 0 && (
@@ -97,12 +97,12 @@ export default function AIGuide() {
                 {guide.recommendations.map((r, idx) => (
                   <div key={idx} style={{ padding: 12, borderRadius: 8, background: '#fff', border: '1px solid #e6e6e6' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <strong>{r.title || `Routine ${idx+1}`}</strong>
+                      <strong style={{ color: 'var(--app-primary, #667eea)' }}>{r.title || `Routine ${idx+1}`}</strong>
                       <div style={{ display: 'flex', gap: 8 }}>
                         <button onClick={() => startRoutine(r)} className="btn small">Start</button>
                       </div>
                     </div>
-                    {r.notes && <div style={{ marginTop: 8, color: '#555' }}>{r.notes}</div>}
+                    {r.notes && <div style={{ marginTop: 8, color: 'var(--app-foreground, #555)' }}>{r.notes}</div>}
                   </div>
                 ))}
               </div>
