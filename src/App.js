@@ -9,6 +9,8 @@ import MoodTrackerPage from "./pages/MoodTrackerPage";
 import TherapistNotesPage from "./pages/TherapistNotesPage";
 import AIGuide from "./pages/AIGuide";
 import CommunityPage from "./pages/CommunityPage";
+import Reports from "./pages/Reports";
+import ProgressReport from "./pages/ProgressReport";
 import Settings from "./pages/Settings";
 import HelpPage from "./pages/Help";
 import GamesPage from "./pages/GamesPage";
@@ -67,6 +69,14 @@ function App() {
           <Route
             path="/ai-guide"
             element={isLoggedIn ? <AIGuide /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/reports"
+            element={isLoggedIn ? <Reports /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/progress-report"
+            element={isLoggedIn ? <ProgressReport /> : <Navigate to="/login" />}
           />
           <Route
             path="/community"

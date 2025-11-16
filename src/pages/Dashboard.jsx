@@ -4,7 +4,7 @@ import {
   User, Activity, BookOpen, Handshake, Users, HelpCircle,
   Settings, Bot, HeartPulse, Hospital, Menu, LogOut,
   Paperclip,
-  GamepadIcon
+  Gamepad
 } from "lucide-react";
 import "../styles/Dashboard.css";
 
@@ -74,7 +74,7 @@ export default function Dashboard({ isLoggedIn, onLogout }) {
         <h2 className="logo">🌙 SnoRelax</h2>
         <nav>
           <button onClick={() => requireLogin("/profile")}><User size={18} /> Profile</button>
-          <button onClick={() => requireLogin("/games")}><GamepadIcon size={18} /> Games</button>
+          <button onClick={() => requireLogin("/games")}><Gamepad size={18} /> Games</button>
           <button onClick={() => requireLogin("/mood-tracker")}><BookOpen size={18} /> Mood Tracker</button>
           <button onClick={() => requireLogin("/therapist-notes")}><Paperclip size={18} /> Therapist Notes</button>
           <button onClick={() => requireLogin("/community")}><Users size={18} /> Community</button>
@@ -111,7 +111,7 @@ export default function Dashboard({ isLoggedIn, onLogout }) {
           <div className={`widget ${!isLoggedIn ? "disabled" : ""}`} onClick={() => requireLogin("/mood-tracker")}><BookOpen size={28} /><h3>Mood Tracker</h3><p>Log your daily mood & monitor changes.</p></div>
           <div className={`widget ${!isLoggedIn ? "disabled" : ""}`} onClick={() => requireLogin("/ai-guide")}><Handshake size={28} /><h3>AI Health Guide</h3><p>AI-guided Health Assistant recommendations and routines.</p></div>
           <div className={`widget ${!isLoggedIn ? "disabled" : ""}`} onClick={() => requireLogin("/ai-guide")}><Paperclip size={28} /><h3>Therapist Notes</h3><p>Admin recommendations Guide.</p></div>
-          <div className={`widget ${!isLoggedIn ? "disabled" : ""}`}><Hospital size={28} /><h3>Hospital Reports</h3><p>Store prescriptions & medical history.</p></div>
+          <div className={`widget ${!isLoggedIn ? "disabled" : ""}`} onClick={() => requireLogin("/reports")}><Hospital size={28} /><h3>Hospital Reports</h3><p>Store prescriptions & medical history.</p></div>
 
           {/* HealthVault always active */}
           <div className="widget cursor-pointer" onClick={() => window.open("https://kuro-shiv.github.io/Web_Devlopment/HV/health-vault.html", "_blank")}>

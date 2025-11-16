@@ -21,7 +21,10 @@ export default function Chatbot() {
     if (from === to) return text;
     try {
       const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${from}&tl=${to}&dt=t&q=${encodeURIComponent(text)}`;
-      const res = await fetch(url, { timeout: 5000 });
+      const controller = new AbortController();
+      const id = setTimeout(() => controller.abort(), 5000);
+      const res = await fetch(url, { signal: controller.signal });
+      clearTimeout(id);
       if (!res.ok) return text;
       const data = await res.json();
       if (!data || !Array.isArray(data[0])) return text;

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "../styles/Profile.css";
+import ReportModal from "../components/ReportModal";
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -22,6 +23,7 @@ export default function Profile() {
 
   const [isEditing, setIsEditing] = useState(false);
   const [previewAvatar, setPreviewAvatar] = useState(user.avatar);
+  const [showReportModal, setShowReportModal] = useState(false);
   const [communityNickname, setCommunityNickname] = useState(
     localStorage.getItem("communityNickname") || "Anonymous"
   );
@@ -183,10 +185,23 @@ export default function Profile() {
 
         {/* Quick Actions */}
         <div className="profile-actions">
-          <button onClick={() => navigate("/chatbot")}>AI Chatbot</button>
-          <button onClick={() => navigate("/exercises")}>Guided Exercises</button>
-          <button onClick={() => navigate("/reports")}>View Reports</button>
+          <button onClick={() => navigate("/progress-report")}>Progress Report</button>
+          <button onClick={() => navigate("/ai-guide")}>Guided Exercises</button>
+          <button onClick={() => setShowReportModal(true)}>Medical Report Summarization</button>
         </div>
+
+        <ReportModal
+          visible={showReportModal}
+          onClose={() => setShowReportModal(false)}
+          onSeeRecords={() => {
+            setShowReportModal(false);
+            navigate('/reports');
+          }}
+          onUpload={() => {
+            setShowReportModal(false);
+            navigate('/reports?action=upload');
+          }}
+        />
 
         {/* Edit Section */}
         {isEditing ? (
