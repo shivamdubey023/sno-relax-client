@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { io } from "socket.io-client";
 import { API_ENDPOINTS } from "../config/api.config";
 import "../styles/Chatbot.css";
 
@@ -11,11 +12,77 @@ export default function Chatbot() {
   const [load, setLoad] = useState(false);
   const [listening, setListening] = useState(false);
   const [lang, setLang] = useState("en");
+  const [lastMessageFromVoice, setLastMessageFromVoice] = useState(false);
   const r = useRef(null);
+  const socketRef = useRef(null);
 
   useEffect(() => {
     r.current?.scrollIntoView({ behavior: "smooth" });
   }, [msgs]);
+
+  useEffect(() => {
+    // Initialize socket connection
+    socketRef.current = io(process.env.REACT_APP_SOCKET_IO_URL || process.env.REACT_APP_API_BASE || "http://localhost:5000", {
+      withCredentials: true,
+    });
+
+    socketRef.current.on("connect", () => {
+      console.log("Connected to chatbot socket");
+    });
+
+    socketRef.current.on("chatbotResponse", (data) => {
+      setLoad(false);
+      if (data.text) {
+        let finalText = data.text;
+        // Translate response back to user's language if needed
+        if (lang && lang !== "en") {
+          finalText = translate(data.text, "en", lang);
+        }
+        setMsgs(p => [...p, { t: "bot", txt: finalText }]);
+        // If server returned mood analysis, append a summary message with habit tips
+        if (data.moodAnalysis) {
+          try {
+            const ma = data.moodAnalysis;
+            const mood = ma.mood || (ma.label || 'neutral');
+            const habits = Array.isArray(ma.habits) ? ma.habits : [];
+            let suggestionText = `Mood: ${mood}`;
+            if (habits.length) {
+              suggestionText += '\nSuggestions:';
+              habits.slice(0,3).forEach((h, idx) => {
+                const title = h.title || h.name || `Tip ${idx+1}`;
+                const desc = h.description || h.desc || '';
+                suggestionText += `\n${idx+1}. ${title}: ${desc}`;
+              });
+            }
+            setMsgs(p => [...p, { t: "bot", txt: suggestionText }]);
+          } catch (e) {
+            console.warn('Failed to render moodAnalysis:', e);
+          }
+        }
+
+        // Speak the response if it was triggered by voice input
+        if (lastMessageFromVoice) {
+          speak(finalText, lang || "en");
+        }
+      }
+    });
+
+    socketRef.current.on("chatbotError", (error) => {
+      setLoad(false);
+      console.error("Chatbot API error:", error);
+      setMsgs(p => [...p, { t: "bot", txt: "🤖 Sorry, I'm experiencing technical difficulties with my AI brain. Please try again later or contact support if the issue persists." }]);
+    });
+
+    socketRef.current.on("disconnect", () => {
+      console.log("Disconnected from chatbot socket");
+    });
+
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+      }
+    };
+  }, [lang]);
 
   const translate = async (text, from, to) => {
     if (from === to) return text;
@@ -106,6 +173,8 @@ export default function Chatbot() {
     setMsgs(p => [...p, { t: "user", txt: msg }]);
     setInp("");
     setLoad(true);
+    setLastMessageFromVoice(isMic);
+
     try {
       // Translate user message to English if needed
       let msgToSend = msg;
@@ -113,50 +182,22 @@ export default function Chatbot() {
         msgToSend = await translate(msg, lang, "en");
       }
 
-      const res = await fetch(API_ENDPOINTS.CHAT.SEND_MESSAGE, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ userId, message: msgToSend, lang })
-      });
-      const d = await res.json();
-      if (d.text) {
-        let finalText = d.text;
-        // Translate response back to user's language if needed
-        if (lang && lang !== "en") {
-          finalText = await translate(d.text, "en", lang);
-        }
-        setMsgs(p => [...p, { t: "bot", txt: finalText }]);
-        // If server returned mood analysis, append a summary message with habit tips
-        if (d.moodAnalysis) {
-          try {
-            const ma = d.moodAnalysis;
-            const mood = ma.mood || (ma.label || 'neutral');
-            const habits = Array.isArray(ma.habits) ? ma.habits : [];
-            let suggestionText = `Mood: ${mood}`;
-            if (habits.length) {
-              suggestionText += '\nSuggestions:';
-              habits.slice(0,3).forEach((h, idx) => {
-                const title = h.title || h.name || `Tip ${idx+1}`;
-                const desc = h.description || h.desc || '';
-                suggestionText += `\n${idx+1}. ${title}: ${desc}`;
-              });
-            }
-            setMsgs(p => [...p, { t: "bot", txt: suggestionText }]);
-          } catch (e) {
-            console.warn('Failed to render moodAnalysis:', e);
-          }
-        }
-        
-        if (isMic) {
-          speak(finalText, lang || "en");
-        }
+      // Send message via socket
+      if (socketRef.current) {
+        socketRef.current.emit("chatbotMessage", {
+          userId,
+          message: msgToSend,
+          lang
+        });
+      } else {
+        throw new Error("Socket not connected");
       }
+
     } catch (err) {
       console.error("Send error:", err);
-      setMsgs(p => [...p, { t: "bot", txt: "⚠️ Connection error. Try again!" }]);
+      setLoad(false);
+      setMsgs(p => [...p, { t: "bot", txt: "🤖 Sorry, I'm having trouble connecting to my AI services. Please check your internet connection and try again." }]);
     }
-    setLoad(false);
   };
 
   const handleHelp = () => {
