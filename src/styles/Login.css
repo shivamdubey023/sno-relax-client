@@ -53,6 +53,38 @@
   transition: color 0.3s ease;
 }
 
+/* Tab Navigation */
+.tab-container {
+  display: flex;
+  margin-bottom: 1.5rem;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+}
+
+.tab-button {
+  flex: 1;
+  padding: clamp(10px, 2vw, 14px);
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: clamp(0.85rem, 1.8vw, 1rem);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.tab-button.active {
+  background: var(--accent-primary);
+  color: white;
+}
+
+.tab-button:hover:not(.active) {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
 /* Form */
 form {
   display: flex;

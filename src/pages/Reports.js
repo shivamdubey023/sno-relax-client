@@ -55,7 +55,8 @@ export default function Reports() {
       form.append('image', file);
       const base = API_URL || '';
       const url = `${base}/api/reports/upload`;
-      const res = await axios.post(url, form, { headers: { 'Content-Type': 'multipart/form-data' }, withCredentials: true });
+      // Remove the manual Content-Type header - let axios set it automatically for FormData
+      const res = await axios.post(url, form, { withCredentials: true });
         if (res.data && res.data.ok) {
         alert('Report uploaded successfully');
         setFile(null);
