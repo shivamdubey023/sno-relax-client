@@ -1,6 +1,7 @@
 // src/pages/CommunityPage.jsx
 import React, { useEffect, useState, useRef } from "react";
-import { API_ENDPOINTS } from "../config/api.config";
+import { API_ENDPOINTS, SOCKET_URL } from "../config/api.config";
+import { io } from "socket.io-client";
 import "../styles/Community.css";
 
 export default function CommunityPage() {
@@ -25,6 +26,7 @@ export default function CommunityPage() {
   const messagesEndRef = useRef(null);
   const inputAreaRef = useRef(null);
   const [messagesMaxHeight, setMessagesMaxHeight] = useState("auto");
+  const socketRef = useRef(null);
 
   // Load groups on mount
   useEffect(() => {
@@ -52,28 +54,37 @@ export default function CommunityPage() {
     return () => window.removeEventListener("resize", updateHeight);
   }, [selectedGroup]);
 
-  // Poll messages every 1s for real-time updates
+  // Setup WebSocket for real-time messages
   useEffect(() => {
-    if (!selectedGroup) return;
+    if (!selectedGroup || !currentUserId) return;
 
-    let mounted = true;
-    const id = setInterval(async () => {
-      try {
-        // skip polling while input is focused to avoid interrupting typing
-        const active = document.activeElement;
-        if (inputAreaRef.current && active && inputAreaRef.current.contains(active)) return;
-        if (!mounted) return;
-        await loadMessages();
-      } catch (e) {
-        // ignore
+    const socket = io(SOCKET_URL, {
+      transports: ["websocket", "polling"],
+      reconnection: true,
+    });
+
+    socketRef.current = socket;
+
+    // Join the group
+    socket.emit("joinGroup", selectedGroup._id);
+
+    // Listen for new messages
+    socket.on("receiveGroupMessage", (message) => {
+      if (String(message.groupId) === String(selectedGroup._id)) {
+        setMessages((prev) => {
+          // Avoid duplicates
+          if (prev.some(m => String(m._id) === String(message._id))) return prev;
+          return [...prev, message];
+        });
       }
-    }, 1000);
+    });
 
     return () => {
-      mounted = false;
-      clearInterval(id);
+      socket.emit("leaveGroup", selectedGroup._id);
+      socket.disconnect();
+      socketRef.current = null;
     };
-  }, [selectedGroup]);
+  }, [selectedGroup, currentUserId]);
 
   // When a group is selected, load members first and only load messages if the user is a member or group is public
   useEffect(() => {
