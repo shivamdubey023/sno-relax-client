@@ -52,29 +52,6 @@ export default function CommunityPage() {
     return () => window.removeEventListener("resize", updateHeight);
   }, [selectedGroup]);
 
-  // Poll messages every 1s for the active chat section (skip when input focused)
-  useEffect(() => {
-    if (!selectedGroup) return;
-
-    let mounted = true;
-    const id = setInterval(async () => {
-      try {
-        // skip polling while input is focused to avoid interrupting typing
-        const active = document.activeElement;
-        if (inputAreaRef.current && active && inputAreaRef.current.contains(active)) return;
-        if (!mounted) return;
-        await loadMessages();
-      } catch (e) {
-        // ignore
-      }
-    }, 1000);
-
-    return () => {
-      mounted = false;
-      clearInterval(id);
-    };
-  }, [selectedGroup]);
-
   // When a group is selected, load members first and only load messages if the user is a member or group is public
   useEffect(() => {
     if (!selectedGroup) return;
