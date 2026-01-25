@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "./context/ThemeContext";
+
+// Pages
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import ChatbotPage from "./pages/ChatbotPage";
@@ -15,22 +17,51 @@ import Settings from "./pages/Settings";
 import HelpPage from "./pages/Help";
 import GamesPage from "./pages/GamesPage";
 
+/**
+ * ✅ ProtectedRoute
+ * - Restricts access to authenticated users only
+ * - If user is not logged in, redirects to Login page
+ */
+const ProtectedRoute = ({ isLoggedIn, children }) => {
+  return isLoggedIn ? children : <Navigate to="/login" replace />;
+};
+
+/**
+ * ✅ AuthRedirect
+ * - Prevents logged-in users from accessing Login page again
+ */
+const AuthRedirect = ({ isLoggedIn, children }) => {
+  return isLoggedIn ? <Navigate to="/" replace /> : children;
+};
+
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // ✅ Check login state on app load
+  /**
+   * ✅ Check authentication status on app load
+   * - Token is stored in localStorage
+   * - If token exists, user is considered logged in
+   */
   useEffect(() => {
     const token = localStorage.getItem("authToken");
-    if (token) setIsLoggedIn(true);
+    setIsLoggedIn(!!token);
   }, []);
 
-  // ✅ Handle login
+  /**
+   * ✅ Handle successful login
+   * - Save token
+   * - Update app state
+   */
   const handleLogin = (token) => {
     localStorage.setItem("authToken", token);
     setIsLoggedIn(true);
   };
 
-  // ✅ Handle logout
+  /**
+   * ✅ Handle logout
+   * - Remove token
+   * - Reset login state
+   */
   const handleLogout = () => {
     localStorage.removeItem("authToken");
     setIsLoggedIn(false);
@@ -40,63 +71,129 @@ function App() {
     <ThemeProvider>
       <BrowserRouter>
         <Routes>
-          {/* Default page is Dashboard */}
+          {/* ================= PUBLIC ROUTES ================= */}
+
+          <Route
+            path="/login"
+            element={
+              <AuthRedirect isLoggedIn={isLoggedIn}>
+                <Login onLogin={handleLogin} />
+              </AuthRedirect>
+            }
+          />
+
+          {/* ================= PROTECTED ROUTES ================= */}
+
           <Route
             path="/"
-            element={<Dashboard isLoggedIn={isLoggedIn} onLogout={handleLogout} />}
+            element={
+              <ProtectedRoute isLoggedIn={isLoggedIn}>
+                <Dashboard onLogout={handleLogout} />
+              </ProtectedRoute>
+            }
           />
 
-          {/* Login page */}
-          <Route path="/login" element={<Login onLogin={handleLogin} />} />
-
-          {/* Protected routes */}
           <Route
             path="/chatbot"
-            element={isLoggedIn ? <ChatbotPage /> : <Navigate to="/login" />}
-          />
-          <Route
-            path="/profile"
-            element={isLoggedIn ? <Profile /> : <Navigate to="/login" />}
-          />
-          <Route
-            path="/mood-tracker"
-            element={isLoggedIn ? <MoodTrackerPage /> : <Navigate to="/login" />}
-          />
-          <Route
-            path="/therapist-notes"
-            element={isLoggedIn ? <TherapistNotesPage /> : <Navigate to="/login" />}
-          />
-          <Route
-            path="/ai-guide"
-            element={isLoggedIn ? <AIGuide /> : <Navigate to="/login" />}
-          />
-          <Route
-            path="/reports"
-            element={isLoggedIn ? <Reports /> : <Navigate to="/login" />}
-          />
-          <Route
-            path="/progress-report"
-            element={isLoggedIn ? <ProgressReport /> : <Navigate to="/login" />}
-          />
-          <Route
-            path="/community"
-            element={isLoggedIn ? <CommunityPage /> : <Navigate to="/login" />}
-          />
-          <Route
-            path="/games"
-            element={isLoggedIn ? <GamesPage /> : <Navigate to="/login" />}
-          />
-          <Route
-            path="/settings"
-            element={isLoggedIn ? <Settings /> : <Navigate to="/login" />}
-          />
-          <Route
-            path="/help"
-            element={isLoggedIn ? <HelpPage /> : <Navigate to="/login" />}
+            element={
+              <ProtectedRoute isLoggedIn={isLoggedIn}>
+                <ChatbotPage />
+              </ProtectedRoute>
+            }
           />
 
-          {/* Fallback redirect */}
-          <Route path="*" element={<Navigate to="/" />} />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute isLoggedIn={isLoggedIn}>
+                <Profile />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/mood-tracker"
+            element={
+              <ProtectedRoute isLoggedIn={isLoggedIn}>
+                <MoodTrackerPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/therapist-notes"
+            element={
+              <ProtectedRoute isLoggedIn={isLoggedIn}>
+                <TherapistNotesPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/ai-guide"
+            element={
+              <ProtectedRoute isLoggedIn={isLoggedIn}>
+                <AIGuide />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/reports"
+            element={
+              <ProtectedRoute isLoggedIn={isLoggedIn}>
+                <Reports />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/progress-report"
+            element={
+              <ProtectedRoute isLoggedIn={isLoggedIn}>
+                <ProgressReport />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/community"
+            element={
+              <ProtectedRoute isLoggedIn={isLoggedIn}>
+                <CommunityPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/games"
+            element={
+              <ProtectedRoute isLoggedIn={isLoggedIn}>
+                <GamesPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/settings"
+            element={
+              <ProtectedRoute isLoggedIn={isLoggedIn}>
+                <Settings />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/help"
+            element={
+              <ProtectedRoute isLoggedIn={isLoggedIn}>
+                <HelpPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* ================= FALLBACK ================= */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
     </ThemeProvider>

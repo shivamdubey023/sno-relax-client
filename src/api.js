@@ -2,190 +2,182 @@
 import { API_ENDPOINTS, API_BASE, SOCKET_URL } from "./config/api.config";
 import { io } from "socket.io-client";
 
-// ==================== AUTH ====================
-export async function createUser(data) {
-  const res = await fetch(API_ENDPOINTS.AUTH.CREATE_USER, {
+/* ============================================================
+   Generic API Request Helper
+   - Reduces repetition
+   - Centralized error handling
+   ============================================================ */
+async function apiRequest(url, options = {}) {
+  const response = await fetch(url, {
+    headers: {
+      "Content-Type": "application/json",
+      ...(options.headers || {}),
+    },
+    credentials: "include", // required for cookies / sessions
+    ...options,
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`API Error (${response.status}): ${errorText}`);
+  }
+
+  return response.json();
+}
+
+/* ========================== AUTH ========================== */
+
+/**
+ * Create a new user account
+ */
+export const createUser = (data) =>
+  apiRequest(API_ENDPOINTS.AUTH.CREATE_USER, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    credentials: "include",
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error(`Auth Error: ${res.status}`);
-  return res.json();
-}
 
-export async function login(userId) {
-  const res = await fetch(API_ENDPOINTS.AUTH.LOGIN, {
+/**
+ * Login user using userId
+ */
+export const login = (userId) =>
+  apiRequest(API_ENDPOINTS.AUTH.LOGIN, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    credentials: "include",
     body: JSON.stringify({ userId }),
   });
-  if (!res.ok) throw new Error(`Auth Error: ${res.status}`);
-  return res.json();
-}
 
-// ==================== CHAT ====================
-export async function chat(message, userId, lang = "en", persona = "snobot") {
-  const res = await fetch(API_ENDPOINTS.CHAT.SEND_MESSAGE, {
+/* ========================== CHAT ========================== */
+
+/**
+ * Send message to AI chatbot
+ */
+export const chat = (message, userId, lang = "en", persona = "snobot") =>
+  apiRequest(API_ENDPOINTS.CHAT.SEND_MESSAGE, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    credentials: "include",
     body: JSON.stringify({ message, userId, lang, persona }),
   });
-  if (!res.ok) throw new Error(`Chat Error: ${res.status}`);
-  return res.json();
-}
 
-export async function getChatHistory(userId) {
-  const res = await fetch(`${API_ENDPOINTS.CHAT.GET_HISTORY}?userId=${userId}`, {
+/**
+ * Fetch chat history of a user
+ */
+export const getChatHistory = (userId) =>
+  apiRequest(`${API_ENDPOINTS.CHAT.GET_HISTORY}?userId=${userId}`, {
     method: "GET",
-    headers: { "Content-Type": "application/json" },
-    credentials: "include",
   });
-  if (!res.ok) throw new Error(`History Error: ${res.status}`);
-  return res.json();
-}
 
-// ==================== COMMUNITY - GROUPS ====================
-export async function getGroups() {
-  const res = await fetch(API_ENDPOINTS.COMMUNITY.GET_GROUPS, {
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    credentials: "include",
-  });
-  if (!res.ok) throw new Error(`Groups Error: ${res.status}`);
-  return res.json();
-}
+/* ==================== COMMUNITY - GROUPS ==================== */
 
-export async function createGroup(data) {
-  const res = await fetch(API_ENDPOINTS.COMMUNITY.CREATE_GROUP, {
+/**
+ * Fetch all community groups
+ */
+export const getGroups = () =>
+  apiRequest(API_ENDPOINTS.COMMUNITY.GET_GROUPS);
+
+/**
+ * Create a new group
+ */
+export const createGroup = (data) =>
+  apiRequest(API_ENDPOINTS.COMMUNITY.CREATE_GROUP, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    credentials: "include",
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error(`Create Group Error: ${res.status}`);
-  return res.json();
-}
 
-export async function deleteGroup(id) {
-  const res = await fetch(API_ENDPOINTS.COMMUNITY.DELETE_GROUP(id), {
+/**
+ * Delete a group
+ */
+export const deleteGroup = (groupId) =>
+  apiRequest(API_ENDPOINTS.COMMUNITY.DELETE_GROUP(groupId), {
     method: "DELETE",
-    headers: { "Content-Type": "application/json" },
-    credentials: "include",
   });
-  if (!res.ok) throw new Error(`Delete Group Error: ${res.status}`);
-  return res.json();
-}
 
-export async function getGroupMessages(groupId) {
-  const res = await fetch(API_ENDPOINTS.COMMUNITY.GET_GROUP_MESSAGES(groupId), {
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    credentials: "include",
-  });
-  if (!res.ok) throw new Error(`Group Messages Error: ${res.status}`);
-  return res.json();
-}
+/**
+ * Fetch messages of a group
+ */
+export const getGroupMessages = (groupId) =>
+  apiRequest(API_ENDPOINTS.COMMUNITY.GET_GROUP_MESSAGES(groupId));
 
-export async function postGroupMessage(groupId, data) {
-  const res = await fetch(API_ENDPOINTS.COMMUNITY.POST_GROUP_MESSAGE(groupId), {
+/**
+ * Post a message in group chat
+ */
+export const postGroupMessage = (groupId, data) =>
+  apiRequest(API_ENDPOINTS.COMMUNITY.POST_GROUP_MESSAGE(groupId), {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    credentials: "include",
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error(`Post Message Error: ${res.status}`);
-  return res.json();
-}
 
-export async function joinGroup(groupId, userId, nickname) {
-  const res = await fetch(API_ENDPOINTS.COMMUNITY.JOIN_GROUP(groupId), {
+/**
+ * Join a group
+ */
+export const joinGroup = (groupId, userId, nickname) =>
+  apiRequest(API_ENDPOINTS.COMMUNITY.JOIN_GROUP(groupId), {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    credentials: "include",
     body: JSON.stringify({ userId, nickname }),
   });
-  if (!res.ok) throw new Error(`Join Group Error: ${res.status}`);
-  return res.json();
-}
 
-export async function leaveGroup(groupId, userId) {
-  const res = await fetch(API_ENDPOINTS.COMMUNITY.LEAVE_GROUP(groupId), {
+/**
+ * Leave a group
+ */
+export const leaveGroup = (groupId, userId) =>
+  apiRequest(API_ENDPOINTS.COMMUNITY.LEAVE_GROUP(groupId), {
     method: "DELETE",
-    headers: { "Content-Type": "application/json" },
-    credentials: "include",
     body: JSON.stringify({ userId }),
   });
-  if (!res.ok) throw new Error(`Leave Group Error: ${res.status}`);
-  return res.json();
-}
 
-export async function deleteMessage(messageId, userId) {
-  const res = await fetch(API_ENDPOINTS.COMMUNITY.DELETE_MESSAGE(messageId), {
+/**
+ * Delete a group message
+ */
+export const deleteMessage = (messageId, userId) =>
+  apiRequest(API_ENDPOINTS.COMMUNITY.DELETE_MESSAGE(messageId), {
     method: "DELETE",
-    headers: { "Content-Type": "application/json" },
-    credentials: "include",
     body: JSON.stringify({ userId }),
   });
-  if (!res.ok) throw new Error(`Delete Message Error: ${res.status}`);
-  return res.json();
-}
 
-export async function updateNickname(userId, nickname) {
-  const res = await fetch(API_ENDPOINTS.COMMUNITY.UPDATE_NICKNAME(userId), {
+/**
+ * Update user nickname
+ */
+export const updateNickname = (userId, nickname) =>
+  apiRequest(API_ENDPOINTS.COMMUNITY.UPDATE_NICKNAME(userId), {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    credentials: "include",
     body: JSON.stringify({ nickname }),
   });
-  if (!res.ok) throw new Error(`Update Nickname Error: ${res.status}`);
-  return res.json();
-}
 
-export async function getNickname(userId) {
-  const res = await fetch(API_ENDPOINTS.COMMUNITY.GET_NICKNAME(userId), {
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    credentials: "include",
-  });
-  if (!res.ok) throw new Error(`Get Nickname Error: ${res.status}`);
-  return res.json();
-}
+/**
+ * Fetch user nickname
+ */
+export const getNickname = (userId) =>
+  apiRequest(API_ENDPOINTS.COMMUNITY.GET_NICKNAME(userId));
 
-// ==================== MOODS ====================
-export async function getMoods(userId) {
-  const res = await fetch(`${API_ENDPOINTS.MOODS.GET_MOODS}?userId=${userId}`, {
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    credentials: "include",
-  });
-  if (!res.ok) throw new Error(`Moods Error: ${res.status}`);
-  return res.json();
-}
+/* ========================== MOODS ========================== */
 
-export async function addMood(userId, mood, notes = "") {
-  const res = await fetch(API_ENDPOINTS.MOODS.ADD_MOOD, {
+/**
+ * Fetch mood history
+ */
+export const getMoods = (userId) =>
+  apiRequest(`${API_ENDPOINTS.MOODS.GET_MOODS}?userId=${userId}`);
+
+/**
+ * Add a new mood entry
+ */
+export const addMood = (userId, mood, notes = "") =>
+  apiRequest(API_ENDPOINTS.MOODS.ADD_MOOD, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    credentials: "include",
     body: JSON.stringify({ userId, mood, notes }),
   });
-  if (!res.ok) throw new Error(`Add Mood Error: ${res.status}`);
-  return res.json();
-}
 
-// ==================== SOCKET.IO ====================
-export function createSocket() {
-  return io(SOCKET_URL, {
+/* ======================== SOCKET.IO ======================== */
+
+/**
+ * Create socket connection for real-time features
+ */
+export const createSocket = () =>
+  io(SOCKET_URL, {
     transports: ["websocket", "polling"],
     reconnection: true,
+    reconnectionAttempts: 5,
     reconnectionDelay: 1000,
     reconnectionDelayMax: 5000,
-    reconnectionAttempts: 5,
   });
-}
+
+/* ========================== EXPORT ========================= */
 
 export default {
   createUser,
@@ -207,34 +199,3 @@ export default {
   createSocket,
   API_BASE,
 };
-
-function Chatbot() {
-  // ...existing code...
-
-  const handleSend = async () => {
-    if (!input.trim()) return;
-
-    const newMessages = [...messages, { sender: "user", text: input }];
-    setMessages(newMessages);
-
-    try {
-      const res = await fetch("http://localhost:5000/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: input }),
-      });
-      const data = await res.json();
-
-      if (data.text) {
-        setMessages((prev) => [...prev, { sender: "bot", text: data.text }]);
-      }
-    } catch (err) {
-      setMessages((prev) => [
-        ...prev,
-        { sender: "bot", text: "⚠️ Sorry, I couldn’t connect to the server." },
-      ]);
-    }
-
-    setInput("");
-  };
-}

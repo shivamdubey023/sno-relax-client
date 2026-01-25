@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Line } from "react-chartjs-2";
 import axios from "axios";
 import {
@@ -13,6 +13,9 @@ import {
 } from "chart.js";
 import "../styles/MoodTracker.css";
 
+/* --------------------------------------------------
+   Chart.js registration (required once globally)
+-------------------------------------------------- */
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -23,7 +26,12 @@ ChartJS.register(
   Legend
 );
 
-// ✅ Mood scale
+/* --------------------------------------------------
+   Mood scale definition
+   - emoji  : UI representation
+   - label  : human-readable mood
+   - value  : numeric scale for analytics
+-------------------------------------------------- */
 const moods = [
   { emoji: "😄", label: "Happy", value: 5 },
   { emoji: "🙂", label: "Good", value: 4 },
@@ -34,44 +42,68 @@ const moods = [
 ];
 
 export default function MoodTracker() {
-  const [moodData, setMoodData] = useState([]);
-  const [selectedMood, setSelectedMood] = useState(null);
-  const [loading, setLoading] = useState(true);
+  /* --------------------------------------------------
+     STATE MANAGEMENT
+  -------------------------------------------------- */
+  const [moodData, setMoodData] = useState([]);     // All mood entries
+  const [selectedMood, setSelectedMood] = useState(null); // UI highlight
+  const [loading, setLoading] = useState(true);    // Fetch state
+  const [error, setError] = useState(null);         // Error feedback (future-safe)
 
+  /* --------------------------------------------------
+     USER & API CONFIG
+     - userId from localStorage
+     - apiBase kept configurable for deployment
+  -------------------------------------------------- */
   const userId = localStorage.getItem("sno_userId") || "";
   const apiBase = process.env.REACT_APP_API_BASE || "http://localhost:5000";
 
-  // Fetch moods
+  /* --------------------------------------------------
+     FETCH MOOD HISTORY
+     Runs on component mount & when user changes
+  -------------------------------------------------- */
   useEffect(() => {
     const fetchMoods = async () => {
       if (!userId) return;
+
       try {
         setLoading(true);
+        setError(null);
+
         const res = await axios.get(`${apiBase}/api/moods/${userId}`);
-        if (res.data.ok) {
-          setMoodData(res.data.moods);
+        if (res.data?.ok) {
+          setMoodData(res.data.moods || []);
         }
       } catch (err) {
         console.error("❌ Failed to fetch moods:", err);
+        setError("Unable to load mood data.");
       } finally {
         setLoading(false);
       }
     };
+
     fetchMoods();
   }, [userId, apiBase]);
 
-  // Add new mood
+  /* --------------------------------------------------
+     HANDLE MOOD SELECTION
+     - Saves mood to backend
+     - Optimistically updates UI
+  -------------------------------------------------- */
   const handleMoodClick = async (mood) => {
     if (!userId) {
       alert("Please log in to track your mood!");
       return;
     }
+
     setSelectedMood(mood.label);
+
     try {
       const res = await axios.post(`${apiBase}/api/moods/${userId}`, {
         mood: mood.value,
       });
-      if (res.data.ok) {
+
+      if (res.data?.ok && res.data.entry) {
         setMoodData((prev) => [...prev, res.data.entry]);
       }
     } catch (err) {
@@ -79,16 +111,27 @@ export default function MoodTracker() {
     }
   };
 
+  /* --------------------------------------------------
+     HELPERS
+  -------------------------------------------------- */
+
+  // Convert numeric mood to emoji
   const getEmojiForMood = (value) => {
     const match = moods.find((m) => m.value === value);
     return match ? match.emoji : "❓";
   };
 
+  // Calculate average mood over N days
   const avgMood = (days) => {
     const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
-    const filtered = moodData.filter((d) => new Date(d.date) >= cutoff);
+    const filtered = moodData.filter(
+      (d) => new Date(d.date).getTime() >= cutoff
+    );
+
     if (!filtered.length) return "N/A";
-    const avg = filtered.reduce((sum, d) => sum + d.mood, 0) / filtered.length;
+
+    const avg =
+      filtered.reduce((sum, d) => sum + d.mood, 0) / filtered.length;
 
     if (avg >= 4.5) return "😄 Happy";
     if (avg >= 3.5) return "🙂 Good";
@@ -98,27 +141,39 @@ export default function MoodTracker() {
     return "😢 Sad";
   };
 
-  const getMoodColor = () => {
-    const avg = moodData.length
-      ? moodData.reduce((sum, d) => sum + d.mood, 0) / moodData.length
-      : 3;
+  /* --------------------------------------------------
+     CHART COLOR (memoized for performance)
+  -------------------------------------------------- */
+  const moodColor = useMemo(() => {
+    if (!moodData.length) return "#3b82f6";
+
+    const avg =
+      moodData.reduce((sum, d) => sum + d.mood, 0) / moodData.length;
+
     if (avg >= 4) return "#22c55e";
     if (avg >= 3) return "#3b82f6";
     if (avg >= 2) return "#facc15";
     if (avg >= 1) return "#f97316";
     return "#ef4444";
-  };
+  }, [moodData]);
 
+  /* --------------------------------------------------
+     CHART DATA
+     - Uses full date to avoid weekday duplication
+  -------------------------------------------------- */
   const chartData = {
     labels: moodData.map((d) =>
-      new Date(d.date).toLocaleDateString("en-US", { weekday: "short" })
+      new Date(d.date).toLocaleDateString("en-US", {
+        day: "2-digit",
+        month: "short",
+      })
     ),
     datasets: [
       {
         label: "Mood Level",
         data: moodData.map((d) => d.mood),
-        borderColor: getMoodColor(),
-        backgroundColor: `${getMoodColor()}33`,
+        borderColor: moodColor,
+        backgroundColor: `${moodColor}33`,
         tension: 0.4,
         fill: true,
         pointRadius: 5,
@@ -127,10 +182,13 @@ export default function MoodTracker() {
     ],
   };
 
+  /* --------------------------------------------------
+     RENDER
+  -------------------------------------------------- */
   return (
     <div className="mood-tracker-container">
 
-      {/* Emojis */}
+      {/* Mood selection row */}
       <div className="emoji-row">
         {moods.map((m) => (
           <button
@@ -144,10 +202,12 @@ export default function MoodTracker() {
         ))}
       </div>
 
-      {/* Chart */}
+      {/* Chart section */}
       <div className="chart-container">
         {loading ? (
-          <p>Loading...</p>
+          <p>Loading mood data...</p>
+        ) : error ? (
+          <p className="error-text">{error}</p>
         ) : moodData.length === 0 ? (
           <p>No moods yet. Select one to start!</p>
         ) : (
@@ -180,7 +240,7 @@ export default function MoodTracker() {
         )}
       </div>
 
-      {/* Averages */}
+      {/* Summary cards */}
       <div className="summary-section">
         <div className="summary-card">
           <h3>📅 Weekly</h3>

@@ -1,5 +1,16 @@
 import React from "react";
 
+/**
+ * Static list of topics.
+ *
+ * CURRENT:
+ * - Hardcoded for simplicity and offline use
+ *
+ * FUTURE:
+ * - Replace with API-driven topics
+ * - Personalize based on user progress
+ * - Add categories or difficulty levels
+ */
 const MOCK_TOPICS = [
   {
     id: "t1",
@@ -18,25 +29,44 @@ const MOCK_TOPICS = [
   },
 ];
 
+/**
+ * TopicList Component
+ * ------------------
+ * Displays selectable mental-health topics.
+ *
+ * Props:
+ * - onSelect(topic): callback when a topic is selected
+ * - selected: currently selected topic object
+ *
+ * NOTE:
+ * - This component is intentionally stateless
+ * - Selection state is controlled by the parent
+ */
 export default function TopicList({ onSelect, selected }) {
   return (
     <div>
-      {MOCK_TOPICS.map((t) => (
-        <div
-          key={t.id}
-          onClick={() => onSelect(t)}
-          style={{
-            padding: 10,
-            borderRadius: 6,
-            cursor: "pointer",
-            background: selected?.id === t.id ? "#f0f8ff" : "transparent",
-            marginBottom: 8,
-          }}
-        >
-          <strong>{t.title}</strong>
-          <div style={{ fontSize: 13, color: "#555" }}>{t.description}</div>
-        </div>
-      ))}
+      {MOCK_TOPICS.map((topic) => {
+        const isSelected = selected?.id === topic.id;
+
+        return (
+          <div
+            key={topic.id}
+            onClick={() => onSelect && onSelect(topic)}
+            style={{
+              padding: 10,
+              borderRadius: 6,
+              cursor: "pointer",
+              background: isSelected ? "#f0f8ff" : "transparent",
+              marginBottom: 8,
+            }}
+          >
+            <strong>{topic.title}</strong>
+            <div style={{ fontSize: 13, color: "#555" }}>
+              {topic.description}
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }

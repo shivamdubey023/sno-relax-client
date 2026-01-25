@@ -1,62 +1,84 @@
 import axios from "axios";
+import { API_ENDPOINTS } from "../config/api.config";
 
-const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api/community";
+/* ============================================================
+   Axios Instance
+   - Centralized configuration
+   - Cookies enabled for authentication
+   ============================================================ */
+const communityAPI = axios.create({
+  baseURL: API_ENDPOINTS.COMMUNITY.BASE,
+  withCredentials: true,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
 
-// -------------------- Groups --------------------
+/* ========================== GROUPS ========================== */
 
-// Fetch all community groups
-export const fetchGroups = async () => {
+/**
+ * Fetch all community groups
+ */
+export const getGroups = async () => {
   try {
-    const res = await axios.get(`${API_URL}/groups`);
-    return { ok: true, groups: res.data };
-  } catch (err) {
-    console.error("Error fetching groups:", err);
-    return { ok: false, groups: [] };
+    const res = await communityAPI.get("/groups");
+    return { ok: true, data: res.data };
+  } catch (error) {
+    console.error("Failed to fetch groups:", error);
+    return { ok: false, error: "Unable to load groups" };
   }
 };
 
-// Join a group
+/**
+ * Join a community group
+ */
 export const joinGroup = async (groupId, userId) => {
   try {
-    await axios.post(`${API_URL}/join`, { groupId, userId });
+    await communityAPI.post("/join", { groupId, userId });
     return { ok: true };
-  } catch (err) {
-    console.error("Error joining group:", err);
-    return { ok: false };
+  } catch (error) {
+    console.error("Failed to join group:", error);
+    return { ok: false, error: "Unable to join group" };
   }
 };
 
-// Leave a group
+/**
+ * Leave a community group
+ */
 export const leaveGroup = async (groupId, userId) => {
   try {
-    await axios.post(`${API_URL}/leave`, { groupId, userId });
+    await communityAPI.post("/leave", { groupId, userId });
     return { ok: true };
-  } catch (err) {
-    console.error("Error leaving group:", err);
-    return { ok: false };
+  } catch (error) {
+    console.error("Failed to leave group:", error);
+    return { ok: false, error: "Unable to leave group" };
   }
 };
 
-// -------------------- Messages --------------------
+/* ========================= MESSAGES ========================= */
 
-// Fetch messages of a group
-export const fetchMessages = async (groupId) => {
+/**
+ * Fetch messages of a specific group
+ */
+export const getGroupMessages = async (groupId) => {
   try {
-    const res = await axios.get(`${API_URL}/messages/${groupId}`);
-    return { ok: true, messages: res.data };
-  } catch (err) {
-    console.error("Error fetching messages:", err);
-    return { ok: false, messages: [] };
+    const res = await communityAPI.get(`/messages/${groupId}`);
+    return { ok: true, data: res.data };
+  } catch (error) {
+    console.error("Failed to fetch messages:", error);
+    return { ok: false, error: "Unable to load messages" };
   }
 };
 
-// Send a message to a group
-export const sendMessage = async (groupId, messageData) => {
+/**
+ * Send a message to a group
+ */
+export const sendGroupMessage = async (groupId, messageData) => {
   try {
-    await axios.post(`${API_URL}/messages/${groupId}`, messageData);
+    await communityAPI.post(`/messages/${groupId}`, messageData);
     return { ok: true };
-  } catch (err) {
-    console.error("Error sending message:", err);
-    return { ok: false };
+  } catch (error) {
+    console.error("Failed to send message:", error);
+    return { ok: false, error: "Message sending failed" };
   }
 };

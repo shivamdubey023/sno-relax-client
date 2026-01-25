@@ -66,11 +66,14 @@ export default function Login({ onLogin }) {
     }
 
     try {
-      const res = await fetch(`${process.env.REACT_APP_API_BASE || "http://localhost:5000"}/api/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, phone }),
-      });
+      const res = await fetch(
+        `${process.env.REACT_APP_API_BASE || "http://localhost:5000"}/api/auth/login`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, phone }),
+        }
+      );
       const data = await res.json();
 
       if (!res.ok) {
@@ -121,11 +124,22 @@ export default function Login({ onLogin }) {
     }
 
     try {
-      const res = await fetch(`${process.env.REACT_APP_API_BASE || "http://localhost:5000"}/api/auth/create-user`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ firstName, lastName, email, phone, city, latitude, longitude }),
-      });
+      const res = await fetch(
+        `${process.env.REACT_APP_API_BASE || "http://localhost:5000"}/api/auth/create-user`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            firstName,
+            lastName,
+            email,
+            phone,
+            city,
+            latitude,
+            longitude,
+          }),
+        }
+      );
       const data = await res.json();
 
       if (!res.ok) {
@@ -165,7 +179,6 @@ export default function Login({ onLogin }) {
         <p className="city-info">📍 Your City: {city || "Detecting..."}</p>
         <p className="subtitle">Take a deep breath, let’s get you started 🌱</p>
 
-        {/* Tab Navigation */}
         <div className="tab-container">
           <button
             className={`tab-button ${activeTab === "login" ? "active" : ""}`}
@@ -181,7 +194,6 @@ export default function Login({ onLogin }) {
           </button>
         </div>
 
-        {/* Login Form */}
         {activeTab === "login" && (
           <form onSubmit={handleLogin}>
             <input
@@ -204,7 +216,6 @@ export default function Login({ onLogin }) {
           </form>
         )}
 
-        {/* Registration Form */}
         {activeTab === "register" && (
           <form onSubmit={handleRegister}>
             <input
@@ -235,13 +246,18 @@ export default function Login({ onLogin }) {
               onChange={(e) => setPhone(e.target.value)}
               required
             />
-            <button type="submit" disabled={loading || !city || !latitude || !longitude}>
+            <button
+              type="submit"
+              disabled={loading || !city || !latitude || !longitude}
+            >
               {loading ? "Creating Account..." : "Create Account"}
             </button>
           </form>
         )}
 
-        {errorMessage && <p className="error-message">⚠️ {errorMessage}</p>}
+        {errorMessage && (
+          <p className="error-message">⚠️ {errorMessage}</p>
+        )}
       </div>
     </div>
   );

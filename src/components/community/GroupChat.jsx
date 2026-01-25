@@ -1,380 +1,316 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { API_ENDPOINTS, SOCKET_URL } from "../../config/api.config";
 import { io } from "socket.io-client";
 
+/**
+ * GroupChat Component
+ * -------------------
+ * Handles group messaging with:
+ * - Initial REST-based message loading
+ * - Real-time updates via Socket.IO
+ * - Typing indicators
+ * - Optimistic UI updates
+ *
+ * Props:
+ * - group: active group object
+ * - userId: current user ID
+ * - userNickname: display name (defaults to Anonymous)
+ */
 export default function GroupChat({ group, userId, userNickname = "Anonymous" }) {
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
   const [typing, setTyping] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
   const endRef = useRef(null);
+  const inputRef = useRef(null);
   const socketRef = useRef(null);
   const typingTimeoutRef = useRef(null);
 
-  // Load initial messages
-  useEffect(() => {
-    if (!group) return;
-
-    const loadMessages = async () => {
-      try {
-        setLoading(true);
-        const res = await fetch(API_ENDPOINTS.COMMUNITY.GET_GROUP_MESSAGES(group._id), {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-        });
-
-        if (!res.ok) throw new Error("Failed to load messages");
-
-        const data = await res.json();
-        setMessages(data.messages || []);
-        setError(null);
-      } catch (err) {
-        console.error("Error loading messages:", err);
-        setError("Failed to load messages");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadMessages();
-  }, [group]);
-
-  // Setup Socket.IO
-  useEffect(() => {
+  /**
+   * Load messages from backend (REST API)
+   * FUTURE:
+   * - Pagination
+   * - Server-side cursors
+   */
+  const loadMessages = useCallback(async () => {
     if (!group) return;
 
     try {
-      const socket = io(SOCKET_URL, {
-        transports: ["websocket", "polling"],
-        reconnection: true,
-        reconnectionDelay: 1000,
-      });
-
-      socketRef.current = socket;
-
-      // Join group
-      socket.emit("joinGroup", group._id);
-
-      // Request notification permission once
-      if (typeof window !== 'undefined' && window.Notification && Notification.permission === 'default') {
-        try { Notification.requestPermission(); } catch (e) { /* ignore */ }
-      }
-
-      // Listen for new messages
-      socket.on("receiveGroupMessage", (message) => {
-        if (String(message.groupId) === String(group._id)) {
-          setMessages((prev) => [...prev, message]);
-
-          // show desktop notification for messages not from current user
-          try {
-            const isFromMe = String(message.senderId) === String(userId);
-            if (!isFromMe && typeof window !== 'undefined' && window.Notification && Notification.permission === 'granted') {
-              const title = `${group.name} — ${message.senderNickname || 'Anonymous'}`;
-              const body = (message.message || '').slice(0, 120);
-              const n = new Notification(title, { body });
-              // close after a few seconds
-              setTimeout(() => n.close(), 5000);
-            }
-          } catch (e) {
-            // ignore notification errors
-          }
+      setLoading(true);
+      const res = await fetch(
+        API_ENDPOINTS.COMMUNITY.GET_GROUP_MESSAGES(group._id),
+        {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
         }
-      });
+      );
 
-      // Listen for deleted messages
-      socket.on("messageDeleted", ({ messageId, groupId }) => {
-        if (String(groupId) === String(group._id)) {
-          setMessages((prev) => prev.filter((m) => String(m._id) !== String(messageId)));
-        }
-      });
+      if (!res.ok) throw new Error("Failed to load messages");
 
-      // Listen for edited messages
-      socket.on("messageEdited", ({ messageId, groupId, message: updatedMessage }) => {
-        if (String(groupId) === String(group._id)) {
-          setMessages((prev) =>
-            prev.map((m) =>
-              String(m._id) === String(messageId)
-                ? { ...m, message: updatedMessage, isEdited: true }
-                : m
-            )
-          );
-        }
-      });
-
-      // Listen for typing indicators
-      socket.on("typing", ({ groupId, userId: typingUserId, isTyping }) => {
-        if (String(groupId) === String(group._id) && typingUserId !== userId) {
-          setTyping(isTyping);
-        }
-      });
-
-      return () => {
-        socket.emit("leaveGroup", group._id);
-        socket.disconnect();
-      };
+      const data = await res.json();
+      setMessages(data.messages || []);
+      setError(null);
     } catch (err) {
-      console.error("Socket.IO connection error:", err);
+      console.error("Error loading messages:", err);
+      setError("Failed to load messages");
+    } finally {
+      setLoading(false);
     }
-  }, [group, userId]);
+  }, [group]);
 
-  // Poll messages every 1s for real-time updates
+  /* -------- Initial message load -------- */
+  useEffect(() => {
+    loadMessages();
+  }, [loadMessages]);
+
+  /* -------- Socket.IO setup -------- */
   useEffect(() => {
     if (!group) return;
 
-    let mounted = true;
-    const id = setInterval(async () => {
+    const socket = io(SOCKET_URL, {
+      transports: ["websocket", "polling"],
+      reconnection: true,
+      reconnectionDelay: 1000,
+    });
+
+    socketRef.current = socket;
+    socket.emit("joinGroup", group._id);
+
+    // Desktop notification permission (one-time)
+    if (
+      typeof window !== "undefined" &&
+      window.Notification &&
+      Notification.permission === "default"
+    ) {
       try {
-        const active = document.activeElement;
-        if (inputRef.current && active && inputRef.current.contains(active)) return;
-        if (!mounted) return;
-        await loadMessages();
-      } catch (e) {
-        // ignore
+        Notification.requestPermission();
+      } catch {
+        /* ignore */
       }
-    }, 1000);
+    }
+
+    socket.on("receiveGroupMessage", (message) => {
+      if (String(message.groupId) === String(group._id)) {
+        setMessages((prev) => [...prev, message]);
+
+        // Notify for messages from others
+        try {
+          const isFromMe = String(message.senderId) === String(userId);
+          if (!isFromMe && Notification.permission === "granted") {
+            const n = new Notification(
+              `${group.name} — ${message.senderNickname || "Anonymous"}`,
+              { body: (message.message || "").slice(0, 120) }
+            );
+            setTimeout(() => n.close(), 5000);
+          }
+        } catch {
+          /* ignore */
+        }
+      }
+    });
+
+    socket.on("messageDeleted", ({ messageId, groupId }) => {
+      if (String(groupId) === String(group._id)) {
+        setMessages((prev) =>
+          prev.filter((m) => String(m._id) !== String(messageId))
+        );
+      }
+    });
+
+    socket.on("messageEdited", ({ messageId, groupId, message }) => {
+      if (String(groupId) === String(group._id)) {
+        setMessages((prev) =>
+          prev.map((m) =>
+            String(m._id) === String(messageId)
+              ? { ...m, message, isEdited: true }
+              : m
+          )
+        );
+      }
+    });
+
+    socket.on("typing", ({ groupId, userId: typingUserId, isTyping }) => {
+      if (String(groupId) === String(group._id) && typingUserId !== userId) {
+        setTyping(isTyping);
+      }
+    });
 
     return () => {
-      mounted = false;
-      clearInterval(id);
+      socket.emit("leaveGroup", group._id);
+      socket.disconnect();
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     };
-  }, [group]);
+  }, [group, userId]);
 
-  // Auto scroll to bottom
+  /**
+   * Polling fallback (1s)
+   * WHY THIS EXISTS:
+   * - Ensures sync if socket drops
+   * - Useful in unreliable networks
+   *
+   * FUTURE:
+   * - Can be removed once socket stability is guaranteed
+   */
+  useEffect(() => {
+    if (!group) return;
+
+    const id = setInterval(async () => {
+      const active = document.activeElement;
+      if (inputRef.current && active && inputRef.current.contains(active)) return;
+      await loadMessages();
+    }, 1000);
+
+    return () => clearInterval(id);
+  }, [group, loadMessages]);
+
+  /* -------- Auto-scroll -------- */
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  /**
+   * Send message with optimistic UI update
+   */
   const sendMessage = async () => {
     if (!text.trim() || !group) return;
 
-    const messageData = {
+    const payload = {
       senderId: userId,
       senderNickname: userNickname,
       message: text.trim(),
     };
 
-    // Optimistic UI update
     const tempMessage = {
       _id: `temp_${Date.now()}`,
-      ...messageData,
+      ...payload,
       groupId: group._id,
       createdAt: new Date().toISOString(),
-      isEdited: false,
     };
 
     setMessages((prev) => [...prev, tempMessage]);
     setText("");
 
     try {
-      // Send via REST API
-      const res = await fetch(API_ENDPOINTS.COMMUNITY.POST_GROUP_MESSAGE(group._id), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(messageData),
-      });
-
-      if (!res.ok) throw new Error("Failed to send message");
-
-      const newMessage = await res.json();
-
-      // Replace temp message with actual message
-      setMessages((prev) =>
-        prev.map((m) => (m._id === tempMessage._id ? newMessage : m))
+      const res = await fetch(
+        API_ENDPOINTS.COMMUNITY.POST_GROUP_MESSAGE(group._id),
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify(payload),
+        }
       );
 
-      // Message will be received via polling or websocket from other users
-      // No need to emit here since we already saved via REST API
-    } catch (err) {
-      console.error("Error sending message:", err);
-      // Remove temp message on error
-      setMessages((prev) => prev.filter((m) => m._id !== tempMessage._id));
-      alert("Failed to send message. Please try again.");
+      if (!res.ok) throw new Error();
+
+      const saved = await res.json();
+      setMessages((prev) =>
+        prev.map((m) => (m._id === tempMessage._id ? saved : m))
+      );
+    } catch {
+      setMessages((prev) =>
+        prev.filter((m) => m._id !== tempMessage._id)
+      );
+      alert("Failed to send message. Please try again."); // FUTURE: replace with toast
     }
   };
 
+  /**
+   * Delete a message
+   */
   const deleteMessage = async (messageId) => {
-    if (!confirm("Delete this message?")) return;
+    if (!confirm("Delete this message?")) return; // FUTURE: custom modal
 
     try {
-      const res = await fetch(API_ENDPOINTS.COMMUNITY.DELETE_MESSAGE(messageId), {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ userId }),
+      const res = await fetch(
+        API_ENDPOINTS.COMMUNITY.DELETE_MESSAGE(messageId),
+        {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ userId }),
+        }
+      );
+
+      if (!res.ok) throw new Error();
+
+      setMessages((prev) =>
+        prev.filter((m) => String(m._id) !== String(messageId))
+      );
+
+      socketRef.current?.emit("deleteMessage", {
+        groupId: group._id,
+        messageId,
       });
-
-      if (!res.ok) throw new Error("Failed to delete message");
-
-      setMessages((prev) => prev.filter((m) => String(m._id) !== String(messageId)));
-
-      if (socketRef.current) {
-        socketRef.current.emit("deleteMessage", {
-          groupId: group._id,
-          messageId,
-        });
-      }
-    } catch (err) {
-      console.error("Error deleting message:", err);
+    } catch {
       alert("Failed to delete message");
     }
   };
 
+  /**
+   * Emit typing indicator
+   */
   const handleTyping = () => {
-    if (socketRef.current) {
-      socketRef.current.emit("typing", {
-        groupId: group._id,
-        userId,
-        isTyping: true,
-      });
-    }
+    socketRef.current?.emit("typing", {
+      groupId: group._id,
+      userId,
+      isTyping: true,
+    });
 
-    // Clear previous timeout
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
 
-    // Stop typing indicator after 2 seconds of inactivity
     typingTimeoutRef.current = setTimeout(() => {
-      if (socketRef.current) {
-        socketRef.current.emit("typing", {
-          groupId: group._id,
-          userId,
-          isTyping: false,
-        });
-      }
+      socketRef.current?.emit("typing", {
+        groupId: group._id,
+        userId,
+        isTyping: false,
+      });
     }, 2000);
   };
 
+  /* ------------------ UI ------------------ */
+
   if (loading) {
-    return (
-      <div style={{ padding: 20, textAlign: "center" }}>
-        <p>Loading messages...</p>
-      </div>
-    );
+    return <div style={{ padding: 20, textAlign: "center" }}>Loading messages...</div>;
   }
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-      {/* Messages */}
+      {/* Message list */}
       <div style={{ flex: 1, overflowY: "auto", padding: 12, background: "#f5f5f5" }}>
-        {error && (
-          <div style={{ padding: 10, background: "#ffebee", color: "#c62828", borderRadius: 4 }}>
-            {error}
+        {error && <div style={{ color: "#c62828" }}>{error}</div>}
+
+        {messages.map((msg) => (
+          <div key={msg._id} style={{ marginBottom: 12 }}>
+            <strong>{msg.senderNickname}</strong>
+            <div>{msg.message}</div>
+            {msg.senderId === userId && (
+              <button onClick={() => deleteMessage(msg._id)}>✕</button>
+            )}
           </div>
-        )}
-
-        {messages.length === 0 ? (
-          <div style={{ textAlign: "center", color: "#999", padding: 20 }}>
-            <p>No messages yet. Start the conversation!</p>
-          </div>
-        ) : (
-          messages.map((msg) => (
-            <div key={msg._id} style={{ marginBottom: 12 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                <div>
-                  <div
-                    style={{
-                      fontWeight: "600",
-                      fontSize: 12,
-                      color: msg.isAdmin ? '#a16207' : (msg.senderId === userId ? "#4a90e2" : "#666"),
-                    }}
-                  >
-                    {msg.senderNickname || "Anonymous"}
-                    {msg.senderId === userId && " (You)"}
-                    {msg.isAdmin && (
-                      <span style={{ marginLeft: 8, fontSize: 10, padding: '2px 6px', background: '#fef3c7', borderRadius: 6, color: '#92400e', fontWeight: 700 }}>
-                        Official
-                      </span>
-                    )}
-                  </div>
-                  <div
-                    style={{
-                      background: msg.isAdmin ? '#fffbe6' : (msg.senderId === userId ? "#e8f4f8" : "#fff"),
-                      padding: "8px 12px",
-                      borderRadius: 8,
-                      display: "inline-block",
-                      marginTop: 4,
-                      maxWidth: "80%",
-                      wordWrap: "break-word",
-                    }}
-                  >
-                    {msg.message}
-                    {msg.isEdited && (
-                      <span style={{ fontSize: 10, color: "#999", marginLeft: 8 }}>(edited)</span>
-                    )}
-                  </div>
-                  <div style={{ fontSize: 10, color: "#999", marginTop: 2 }}>
-                    {new Date(msg.createdAt).toLocaleTimeString()}
-                  </div>
-                </div>
-
-                {/* Delete button for sender */}
-                {msg.senderId === userId && (
-                  <button
-                    onClick={() => deleteMessage(msg._id)}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      color: "#999",
-                      cursor: "pointer",
-                      fontSize: 14,
-                      marginLeft: 8,
-                    }}
-                  >
-                    ✕
-                  </button>
-                )}
-              </div>
-            </div>
-          ))
-        )}
-
+        ))}
         <div ref={endRef} />
       </div>
 
-      {/* Typing indicator */}
-      {typing && (
-        <div style={{ padding: "8px 12px", fontSize: 12, color: "#999", fontStyle: "italic" }}>
-          Someone is typing...
-        </div>
-      )}
+      {typing && <div style={{ fontSize: 12 }}>Someone is typing...</div>}
 
-      {/* Input area */}
-      <div style={{ padding: 12, borderTop: "1px solid #ddd", background: "#fff" }}>
-        <div style={{ display: "flex", gap: 8 }}>
-          <input
-            value={text}
-            onChange={(e) => {
-              setText(e.target.value);
-              handleTyping();
-            }}
-            onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), sendMessage())}
-            placeholder="Type a message (anonymous)..."
-            style={{
-              flex: 1,
-              padding: "8px 12px",
-              border: "1px solid #ddd",
-              borderRadius: 4,
-              fontSize: 14,
-            }}
-          />
-          <button
-            onClick={sendMessage}
-            disabled={!text.trim()}
-            style={{
-              padding: "8px 16px",
-              background: text.trim() ? "#4a90e2" : "#ccc",
-              color: "white",
-              border: "none",
-              borderRadius: 4,
-              cursor: text.trim() ? "pointer" : "not-allowed",
-              fontSize: 14,
-            }}
-          >
-            Send
-          </button>
-        </div>
+      {/* Input */}
+      <div style={{ padding: 12 }}>
+        <input
+          ref={inputRef}
+          value={text}
+          onChange={(e) => {
+            setText(e.target.value);
+            handleTyping();
+          }}
+          onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+          placeholder="Type a message..."
+          style={{ width: "80%" }}
+        />
+        <button onClick={sendMessage}>Send</button>
       </div>
     </div>
   );

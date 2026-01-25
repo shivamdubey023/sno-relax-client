@@ -1,16 +1,16 @@
 import React from "react";
-import TherapistNotes from "../components/TherapistNotes";
 import { useNavigate } from "react-router-dom";
-import styles from "../styles/therapistNotes.css";
-// ✅ single CSS module
+import TherapistNotes from "../components/TherapistNotes";
+import "../styles/therapistNotes.css"; // normal CSS import
 
 export default function TherapistNotesPage() {
   const navigate = useNavigate();
 
   return (
-    <div className={styles.page}>
+    <div className="therapist-notes-page">
       <h1>📝 Therapist Notes</h1>
-      <div className={styles.notesWrapper}>
+
+      <div className="therapist-notes-wrapper">
         <TherapistNotes />
       </div>
     </div>
