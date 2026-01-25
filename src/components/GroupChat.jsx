@@ -1,9 +1,7 @@
 // src/components/GroupChat.jsx
 import React, { useEffect, useState, useRef } from "react";
 import { io } from "socket.io-client";
-import { API_ENDPOINTS } from "../config/api.config";
-
-const SOCKET_URL = process.env.REACT_APP_SOCKET_URL || "http://localhost:5000";
+import { SOCKET_URL } from "../config/api.config";
 let socket;
 
 export default function GroupChat({ group }) {

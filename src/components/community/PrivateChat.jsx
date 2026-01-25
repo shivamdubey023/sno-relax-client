@@ -1,8 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
-import axios from "axios";
-import { io } from "socket.io-client";
-
-const API = process.env.REACT_APP_API_BASE || "http://localhost:5000";
+import { API_BASE, SOCKET_URL } from "../../config/api.config";
 
 export default function PrivateChat({ otherUserId, me }) {
   const [messages, setMessages] = useState([]);
@@ -16,7 +12,7 @@ export default function PrivateChat({ otherUserId, me }) {
     if (!otherUserId || !me) return;
     const load = async () => {
       try {
-        const res = await axios.get(`${API}/api/community/private/${otherUserId}/messages?me=${me}`);
+        const res = await axios.get(`${API_BASE}/api/community/private/${otherUserId}/messages?me=${me}`);
         setMessages(res.data.messages || []);
       } catch (e) {
         console.error(e);
@@ -24,7 +20,7 @@ export default function PrivateChat({ otherUserId, me }) {
     };
     load();
 
-    const socket = io(API, { transports: ["websocket"] });
+    const socket = io(SOCKET_URL, { transports: ["websocket"] });
     socketRef.current = socket;
     socket.emit("identify", me);
     socket.on("receivePrivateMessage", (m) => {
@@ -44,7 +40,7 @@ export default function PrivateChat({ otherUserId, me }) {
 
     const loadMessages = async () => {
       try {
-        const res = await axios.get(`${API}/api/community/private/${otherUserId}/messages?me=${me}`);
+        const res = await axios.get(`${API_BASE}/api/community/private/${otherUserId}/messages?me=${me}`);
         if (!mounted) return;
         setMessages(res.data.messages || []);
       } catch (e) {

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { io } from "socket.io-client";
-import { API_ENDPOINTS } from "../config/api.config";
+import { API_ENDPOINTS, SOCKET_URL } from "../config/api.config";
 import "../styles/Chatbot.css";
 
 export default function Chatbot() {
@@ -22,7 +22,7 @@ export default function Chatbot() {
 
   useEffect(() => {
     // Initialize socket connection
-    socketRef.current = io(process.env.REACT_APP_SOCKET_IO_URL || process.env.REACT_APP_API_BASE || "http://localhost:5000", {
+    socketRef.current = io(SOCKET_URL, {
       withCredentials: true,
     });
 
