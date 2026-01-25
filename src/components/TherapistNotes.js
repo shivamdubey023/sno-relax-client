@@ -33,6 +33,26 @@ export default function TherapistNotes() {
     if (textareaRef.current) textareaRef.current.focus();
   }, []);
 
+  // Poll messages every 1s for real-time updates
+  useEffect(() => {
+    let mounted = true;
+    const id = setInterval(async () => {
+      try {
+        const active = document.activeElement;
+        if (textareaRef.current && active && textareaRef.current.contains(active)) return;
+        if (!mounted) return;
+        await fetchMessages();
+      } catch (e) {
+        // ignore
+      }
+    }, 1000);
+
+    return () => {
+      mounted = false;
+      clearInterval(id);
+    };
+  }, []);
+
   // scroll to ensure the last message is visible above the fixed input area
   useEffect(() => {
     const container = messagesRef.current;

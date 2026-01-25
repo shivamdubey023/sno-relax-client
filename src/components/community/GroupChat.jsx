@@ -119,6 +119,28 @@ export default function GroupChat({ group, userId, userNickname = "Anonymous" })
     }
   }, [group, userId]);
 
+  // Poll messages every 1s for real-time updates
+  useEffect(() => {
+    if (!group) return;
+
+    let mounted = true;
+    const id = setInterval(async () => {
+      try {
+        const active = document.activeElement;
+        if (inputRef.current && active && inputRef.current.contains(active)) return;
+        if (!mounted) return;
+        await loadMessages();
+      } catch (e) {
+        // ignore
+      }
+    }, 1000);
+
+    return () => {
+      mounted = false;
+      clearInterval(id);
+    };
+  }, [group]);
+
   // Auto scroll to bottom
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
