@@ -33,33 +33,6 @@ export default function PrivateChat({ otherUserId, me }) {
     return () => socket.disconnect();
   }, [otherUserId, me]);
 
-  // Poll private messages every 2s (skip while input focused)
-  useEffect(() => {
-    if (!otherUserId || !me) return;
-    let mounted = true;
-
-    const loadMessages = async () => {
-      try {
-        const res = await axios.get(`${API_BASE}/api/community/private/${otherUserId}/messages?me=${me}`);
-        if (!mounted) return;
-        setMessages(res.data.messages || []);
-      } catch (e) {
-        // ignore
-      }
-    };
-
-    const id = setInterval(async () => {
-      try {
-        const active = document.activeElement;
-        if (inputRef.current && active && inputRef.current.contains(active)) return;
-        if (!mounted) return;
-        await loadMessages();
-      } catch (e) {}
-    }, 1000);
-
-    return () => { mounted = false; clearInterval(id); };
-  }, [otherUserId, me]);
-
   useEffect(() => endRef.current?.scrollIntoView({ behavior: "smooth" }), [messages]);
 
   useEffect(() => {

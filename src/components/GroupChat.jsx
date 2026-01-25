@@ -43,36 +43,6 @@ export default function GroupChat({ group }) {
     };
   }, [group.id]);
 
-  // Poll messages every 2s for this group (focus-safe)
-  useEffect(() => {
-    if (!group || !group.id) return;
-    let mounted = true;
-
-    const loadMessages = async () => {
-      try {
-        const res = await fetch(API_ENDPOINTS.COMMUNITY.GET_GROUP_MESSAGES(group.id), { credentials: "include" });
-        if (!mounted) return;
-        if (res.ok) {
-          const data = await res.json();
-          setMessages(data.messages || data || []);
-        }
-      } catch (e) {
-        // ignore
-      }
-    };
-
-    const id = setInterval(async () => {
-      try {
-        const active = document.activeElement;
-        if (inputRef.current && active && inputRef.current.contains(active)) return;
-        if (!mounted) return;
-        await loadMessages();
-      } catch (e) {}
-    }, 1000);
-
-    return () => { mounted = false; clearInterval(id); };
-  }, [group]);
-
   const handleSend = () => {
     if (!text.trim()) return;
     const message = { userId, text, groupId: group.id, date: new Date() };
