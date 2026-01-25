@@ -55,7 +55,7 @@ export default function GroupChat({ group, userId, userNickname = "Anonymous" })
       socketRef.current = socket;
 
       // Join group
-      socket.emit("joinGroup", { groupId: group._id, userId });
+      socket.emit("joinGroup", group._id);
 
       // Request notification permission once
       if (typeof window !== 'undefined' && window.Notification && Notification.permission === 'default') {
@@ -111,7 +111,7 @@ export default function GroupChat({ group, userId, userNickname = "Anonymous" })
       });
 
       return () => {
-        socket.emit("leaveGroup", { groupId: group._id, userId });
+        socket.emit("leaveGroup", group._id);
         socket.disconnect();
       };
     } catch (err) {
@@ -185,13 +185,8 @@ export default function GroupChat({ group, userId, userNickname = "Anonymous" })
         prev.map((m) => (m._id === tempMessage._id ? newMessage : m))
       );
 
-      // Emit via Socket.IO for real-time delivery to others
-      if (socketRef.current) {
-        socketRef.current.emit("sendGroupMessage", {
-          groupId: group._id,
-          ...newMessage,
-        });
-      }
+      // Message will be received via polling or websocket from other users
+      // No need to emit here since we already saved via REST API
     } catch (err) {
       console.error("Error sending message:", err);
       // Remove temp message on error
