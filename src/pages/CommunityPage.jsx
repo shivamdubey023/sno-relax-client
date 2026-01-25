@@ -99,6 +99,29 @@ export default function CommunityPage() {
     })();
   }, [selectedGroup]);
 
+  // Poll messages every 1s for real-time updates
+  useEffect(() => {
+    if (!selectedGroup) return;
+
+    let mounted = true;
+    const id = setInterval(async () => {
+      try {
+        // skip polling while input is focused to avoid interrupting typing
+        const active = document.activeElement;
+        if (inputAreaRef.current && active && inputAreaRef.current.contains(active)) return;
+        if (!mounted) return;
+        await loadMessages();
+      } catch (e) {
+        // ignore
+      }
+    }, 1000);
+
+    return () => {
+      mounted = false;
+      clearInterval(id);
+    };
+  }, [selectedGroup]);
+
   const loadGroups = async () => {
     try {
       const res = await fetch(API_ENDPOINTS.COMMUNITY.GET_GROUPS, {
@@ -266,11 +289,18 @@ export default function CommunityPage() {
 
     try {
       setLoading(true);
+      // ensure we have a userId to send: create a guest id if needed
+      let sendUserId = currentUserId;
+      if (!sendUserId) {
+        sendUserId = `u_${Math.random().toString(36).slice(2, 9)}`;
+        localStorage.setItem('sno_user_id', sendUserId);
+        setCurrentUserId(sendUserId);
+      }
       const res = await fetch(API_ENDPOINTS.COMMUNITY.POST_GROUP_MESSAGE(selectedGroup._id), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ senderId: currentUserId, senderNickname: nickname, message: msgInput })
+        body: JSON.stringify({ senderId: sendUserId, senderNickname: nickname, message: msgInput })
       });
       if (res.ok) {
         setMsgInput("");
