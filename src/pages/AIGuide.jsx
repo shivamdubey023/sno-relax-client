@@ -26,7 +26,6 @@ export default function AIGuide() {
     // read lastAction
     const la = localStorage.getItem('aiGuide_lastAction');
     if (la) setLastAction(la);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchMoods = async () => {
