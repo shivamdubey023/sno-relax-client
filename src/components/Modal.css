@@ -138,7 +138,7 @@
 
 /* Primary action button */
 .btn-primary {
-	background: linear-gradient(90deg, var(--accent-primary), calc(var(--accent-primary) + '#2266'));
+	background: linear-gradient(90deg, var(--accent-primary), rgba(0,0,0,0.06));
 	color: var(--text-primary);
 }
 
