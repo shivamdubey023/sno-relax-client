@@ -41,28 +41,45 @@ export const ThemeProvider = ({ children }) => {
     document.documentElement.style.setProperty("--app-primary", baseHex);
     document.documentElement.style.setProperty("--app-gradient", theme === "light" ? `linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%)` : `linear-gradient(135deg, ${baseHex} 0%, ${baseHex}66 100%)`);
 
-  // Defaults for chat "paper" and bubble colors. We prefer white paper
-  // for the message list and input area so the conversation remains readable.
-  document.documentElement.style.setProperty("--chat-paper-bg", "#ffffff");
-  document.documentElement.style.setProperty("--chat-paper-text", "#000000");
-  document.documentElement.style.setProperty("--input-text", "#000000");
+// Defaults for chat variables. We'll set per-theme values below.
+    // Input area should always be white with black text per UX requirement.
+    document.documentElement.style.setProperty("--chat-input-bg", "#ffffff");
+    document.documentElement.style.setProperty("--chat-input-text", "#000000");
 
-  // Default bubble values (can be overridden per-theme)
-  document.documentElement.style.setProperty("--bot-bubble-bg", "#ffffff");
-  document.documentElement.style.setProperty("--bot-text", "#333333");
-  document.documentElement.style.setProperty("--user-bubble-bg", baseHex);
-  document.documentElement.style.setProperty("--user-text", "#ffffff");
+    // Set defaults that will be overridden by theme-specific values
+    document.documentElement.style.setProperty("--chat-bg", "#ffffff");
+    document.documentElement.style.setProperty("--chat-text", "#000000");
+    document.documentElement.style.setProperty("--bot-bubble-bg", "#ffffff");
+    document.documentElement.style.setProperty("--bot-text", "#333333");
+    document.documentElement.style.setProperty("--user-bubble-bg", baseHex);
+    document.documentElement.style.setProperty("--user-text", "#ffffff");
 
     // foreground and background
     if (theme === "light") {
       document.documentElement.style.setProperty("--app-foreground", "#0f172a");
       document.documentElement.style.setProperty("--app-background", "#ffffff");
+      // Chat area in light theme: light paper with dark text
+      document.documentElement.style.setProperty("--chat-bg", "#f7f9fc");
+      document.documentElement.style.setProperty("--chat-text", "#0b1220");
+      document.documentElement.style.setProperty("--bot-bubble-bg", "#ffffff");
+      document.documentElement.style.setProperty("--bot-text", "#111827");
+      document.documentElement.style.setProperty("--user-bubble-bg", baseHex);
+      document.documentElement.style.setProperty("--user-text", "#ffffff");
+
       // Therapist-specific variables fall back to defaults for light theme
       document.documentElement.style.setProperty("--therapist-chat-bg", "#ffffff");
       document.documentElement.style.setProperty("--therapist-text", "#000000");
     } else {
       document.documentElement.style.setProperty("--app-foreground", "#ffffff");
       document.documentElement.style.setProperty("--app-background", "#0b1220");
+      // Dark theme: darker chat surface, light text, translucent bubbles
+      document.documentElement.style.setProperty("--chat-bg", "#0b1220");
+      document.documentElement.style.setProperty("--chat-text", "#e6eef8");
+      document.documentElement.style.setProperty("--bot-bubble-bg", "rgba(255,255,255,0.03)");
+      document.documentElement.style.setProperty("--bot-text", "#e6eef8");
+      document.documentElement.style.setProperty("--user-bubble-bg", baseHex);
+      document.documentElement.style.setProperty("--user-text", "#ffffff");
+
       // Defaults for non-light themes (dark). If user chooses the `therapist`
       // theme we override below to ensure therapist page colors are applied.
       document.documentElement.style.setProperty("--therapist-chat-bg", "#0b1220");

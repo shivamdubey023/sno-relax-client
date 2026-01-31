@@ -41,7 +41,7 @@
 }
 
 /* ============================
-   Messages Area (Dark Paper UI)
+   Messages Area (Paper UI - theme driven)
    ============================ */
 .chat-messages {
   flex: 1;
@@ -51,8 +51,8 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  background: var(--chat-bg-dark,#0b1220);
-  color: var(--chat-text-light,#e6eef8);
+  background: var(--chat-bg);
+  color: var(--chat-text);
 }
 
 /* ============================
@@ -67,7 +67,7 @@
 .message-row.bot  { justify-content: flex-start; }
 
 /* ============================
-   Message Bubble (subtle, non-white)
+   Message Bubble (subtle)
    ============================ */
 .message-bubble {
   max-width: 70%;
@@ -80,19 +80,20 @@
 }
 
 .message-bubble.user {
-  background: var(--user-bubble-bg,#2563eb);
-  color: #fff;
+  background: var(--user-bubble-bg);
+  color: var(--user-text);
 }
 
 .message-bubble.bot {
-  background: rgba(255,255,255,0.03);
-  color: var(--bot-text,#e6eef8);
+  background: var(--bot-bubble-bg);
+  color: var(--bot-text);
   border: 1px solid rgba(255,255,255,0.04);
 }
 
-/* Make sure input area stays white with black text */
-.chat-input-area { background: #fff; }
-.chat-input { color: #000; }
+/* Input area driven by variables (keeps input white + black text per UX)
+   but can be overwritten if desired by themes */
+.chat-input-area { background: var(--chat-input-bg); }
+.chat-input { color: var(--chat-input-text); }
 
 
 /* ============================
