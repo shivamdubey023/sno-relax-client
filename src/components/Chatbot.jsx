@@ -234,17 +234,23 @@ export default function Chatbot() {
   return (
     <div className="chatbot-container">
       <div className="chat-header">
-        <h3>SnoBot</h3>
+        <div className="header-top">
+          <div className="header-left" />
 
-        <div>
-          <select value={lang} onChange={(e) => setLang(e.target.value)}>
-            <option value="en">EN</option>
-            <option value="hi">HI</option>
-            <option value="es">ES</option>
-            <option value="fr">FR</option>
-          </select>
+          <div className="header-center">
+            <h3 className="chat-title">🤖 SnoBot</h3>
+          </div>
 
-          <button onClick={handleHelp}>❓</button>
+          <div className="header-right">
+            <select value={lang} onChange={(e) => setLang(e.target.value)}>
+              <option value="en">EN</option>
+              <option value="hi">HI</option>
+              <option value="es">ES</option>
+              <option value="fr">FR</option>
+            </select>
+
+            <button onClick={handleHelp} aria-label="Help">❓</button>
+          </div>
         </div>
       </div>
 
