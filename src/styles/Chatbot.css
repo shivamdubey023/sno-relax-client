@@ -41,7 +41,7 @@
 }
 
 /* ============================
-   Messages Area (Paper UI)
+   Messages Area (Dark Paper UI)
    ============================ */
 .chat-messages {
   flex: 1;
@@ -51,8 +51,8 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  background: var(--chat-paper-bg,#fff);
-  color: var(--chat-paper-text,#000);
+  background: var(--chat-bg-dark,#0b1220);
+  color: var(--chat-text-light,#e6eef8);
 }
 
 /* ============================
@@ -67,26 +67,33 @@
 .message-row.bot  { justify-content: flex-start; }
 
 /* ============================
-   Message Bubble
+   Message Bubble (subtle, non-white)
    ============================ */
 .message-bubble {
   max-width: 70%;
   padding: 12px 16px;
   border-radius: 18px;
   line-height: 1.4;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  box-shadow: none; /* remove white box look */
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255,255,255,0.03);
 }
 
 .message-bubble.user {
-  background: var(--user-bubble-bg);
-  color: var(--user-text);
+  background: var(--user-bubble-bg,#2563eb);
+  color: #fff;
 }
 
 .message-bubble.bot {
-  background: var(--bot-bubble-bg,#fff);
-  color: var(--bot-text,#000);
-  border: 1px solid rgba(0,0,0,0.08);
+  background: rgba(255,255,255,0.03);
+  color: var(--bot-text,#e6eef8);
+  border: 1px solid rgba(255,255,255,0.04);
 }
+
+/* Make sure input area stays white with black text */
+.chat-input-area { background: #fff; }
+.chat-input { color: #000; }
+
 
 /* ============================
    Typing Indicator (Single Source)
