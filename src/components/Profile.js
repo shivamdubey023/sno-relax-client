@@ -195,8 +195,9 @@ export default function Profile() {
         maxWidth: 600,
         margin: "0 auto",
         padding: 24,
-        background: "#f9f9f9",
+        background: "var(--bg-secondary)",
         borderRadius: 12,
+        color: "var(--text-primary)",
       }}
     >
       <h2 style={{ marginBottom: 24, fontSize: 24, fontWeight: "bold" }}>
@@ -206,11 +207,12 @@ export default function Profile() {
       {/* ================= ACCOUNT INFO ================= */}
       <div
         style={{
-          background: "white",
+          background: "var(--bg-primary)",
           padding: 16,
           borderRadius: 8,
           marginBottom: 24,
-          border: "1px solid #ddd",
+          border: "1px solid rgba(0,0,0,0.06)",
+          color: "var(--text-primary)",
         }}
       >
         <h3 style={{ marginTop: 0, marginBottom: 12, fontSize: 16 }}>
@@ -218,14 +220,15 @@ export default function Profile() {
         </h3>
 
         <div style={{ marginBottom: 12 }}>
-          <label style={{ fontSize: 12, color: "#666" }}>User ID</label>
+          <label style={{ fontSize: 12, color: "var(--text-secondary)" }}>User ID</label>
           <div
             style={{
               padding: 10,
-              background: "#f5f5f5",
+              background: "var(--bg-primary)",
               borderRadius: 4,
               fontFamily: "monospace",
               fontSize: 13,
+              color: "var(--text-primary)",
             }}
           >
             {userId}
@@ -233,13 +236,14 @@ export default function Profile() {
         </div>
 
         <div>
-          <label style={{ fontSize: 12, color: "#666" }}>Name</label>
+          <label style={{ fontSize: 12, color: "var(--text-secondary)" }}>Name</label>
           <div
             style={{
               padding: 10,
-              background: "#f5f5f5",
+              background: "var(--bg-primary)",
               borderRadius: 4,
               fontSize: 13,
+              color: "var(--text-primary)",
             }}
           >
             {userName}
@@ -300,19 +304,20 @@ export default function Profile() {
             <div
               style={{
                 padding: 12,
-                background: "#e8f4f8",
+                background: "var(--bg-primary)",
                 borderRadius: 4,
                 marginBottom: 12,
+                color: "var(--text-secondary)"
               }}
             >
-              <div style={{ fontSize: 12, color: "#666" }}>
+                <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>
                 Current Nickname
               </div>
               <div
                 style={{
                   fontSize: 18,
                   fontWeight: "bold",
-                  color: "#4a90e2",
+                  color: "var(--accent-primary)",
                 }}
               >
                 {nickname}
@@ -325,17 +330,8 @@ export default function Profile() {
                   setEditingNickname(true);
                   setNewNickname(nickname);
                 }}
-                style={{
-                  flex: 1,
-                  padding: "10px 16px",
-                  background: "#4a90e2",
-                  color: "white",
-                  border: "none",
-                  borderRadius: 4,
-                  cursor: "pointer",
-                  fontSize: 13,
-                  fontWeight: "600",
-                }}
+                className="btn-primary"
+                style={{ flex: 1 }}
               >
                 Edit Nickname
               </button>
@@ -343,21 +339,8 @@ export default function Profile() {
               <button
                 onClick={handleRemoveNickname}
                 disabled={loading || nickname === "Anonymous"}
-                style={{
-                  flex: 1,
-                  padding: "10px 16px",
-                  background:
-                    nickname === "Anonymous" ? "#ccc" : "#f44336",
-                  color: "white",
-                  border: "none",
-                  borderRadius: 4,
-                  cursor:
-                    nickname === "Anonymous"
-                      ? "not-allowed"
-                      : "pointer",
-                  fontSize: 13,
-                  fontWeight: "600",
-                }}
+                className="btn-danger"
+                style={{ flex: 1, opacity: nickname === "Anonymous" ? 0.6 : 1, cursor: nickname === "Anonymous" ? 'not-allowed' : 'pointer' }}
               >
                 Reset to Anonymous
               </button>

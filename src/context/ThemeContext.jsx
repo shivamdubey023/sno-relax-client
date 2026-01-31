@@ -68,6 +68,11 @@ export const ThemeProvider = ({ children }) => {
       "--input-bg": "#062033",
       "--input-text": "#FFFFFF",
       "--placeholder": "#9CA3AF",
+      // mood band colors
+      "--mood-high": "#22c55e",
+      "--mood-mid": "#3b82f6",
+      "--mood-low": "#f59e0b",
+      "--mood-verylow": "#ef4444",
     };
 
     const darkTokens = {
@@ -81,6 +86,11 @@ export const ThemeProvider = ({ children }) => {
       "--input-bg": "#0b1220",
       "--input-text": "#FFFFFF",
       "--placeholder": "#9CA3AF",
+      // mood band colors (slightly desaturated for dark)
+      "--mood-high": "#16a34a",
+      "--mood-mid": "#2563eb",
+      "--mood-low": "#d97706",
+      "--mood-verylow": "#dc2626",
     };
 
     const lightTokens = {
@@ -94,8 +104,12 @@ export const ThemeProvider = ({ children }) => {
       "--input-bg": "#FFFFFF",
       "--input-text": "#000000",
       "--placeholder": "#6B7280",
+      // mood band colors for light
+      "--mood-high": "#16a34a",
+      "--mood-mid": "#3b82f6",
+      "--mood-low": "#f59e0b",
+      "--mood-verylow": "#ef4444",
     };
-
     if (theme === "brand") applyTokens(brandTokens);
     else if (theme === "dark") applyTokens(darkTokens);
     else applyTokens(lightTokens);

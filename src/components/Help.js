@@ -120,17 +120,17 @@ export default function Help() {
   ];
 
   return (
-    <div style={{ maxWidth: 900, margin: "0 auto", padding: 20 }}>
+    <div style={{ maxWidth: 900, margin: "0 auto", padding: 20, color: 'var(--text-primary)' }}>
       <h1 style={{ textAlign: "center", marginBottom: 30 }}>
         Help & Support
       </h1>
 
       {/* Tab Navigation */}
-      <div style={{ display: "flex", borderBottom: "2px solid #ddd" }}>
-        <button onClick={() => setActiveTab("faq")}>
+      <div style={{ display: "flex", borderBottom: "2px solid rgba(0,0,0,0.06)", gap: 8 }}>
+        <button className={`tab-btn ${activeTab === 'faq' ? 'active' : ''}`} onClick={() => setActiveTab("faq")}>
           FAQ
         </button>
-        <button onClick={() => setActiveTab("about")}>
+        <button className={`tab-btn ${activeTab === 'about' ? 'active' : ''}`} onClick={() => setActiveTab("about")}>
           About
         </button>
       </div>

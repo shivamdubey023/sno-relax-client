@@ -138,8 +138,8 @@
 
 /* Primary action button */
 .btn-primary {
-	background: linear-gradient(90deg, #4aa0e2, #6ee7b7);
-	color: #042037;
+	background: linear-gradient(90deg, var(--accent-primary), calc(var(--accent-primary) + '#2266'));
+	color: var(--text-primary);
 }
 
 .btn-primary:hover {
@@ -148,9 +148,10 @@
 
 /* Secondary / cancel button */
 .btn-secondary {
-	background: #f3f4f6;
-	color: #0b1e3d;
+	background: var(--bg-secondary);
+	color: var(--text-primary);
 }
+
 
 
 /* ================================
@@ -182,10 +183,10 @@
  * Useful for upload / action buttons inside modals
  */
 .upload-btn {
-	background: #4aa0e2;
+	background: var(--accent-primary);
 	border: none;
 	border-radius: 8px;
-	color: #0b1e3d;
+	color: var(--text-primary);
 	cursor: pointer;
 	font-size: 1rem;
 	font-weight: 600;
@@ -195,5 +196,5 @@
 }
 
 .upload-btn:hover {
-	background: #6ee7b7;
+	background: rgba(0,0,0,0.06);
 }
