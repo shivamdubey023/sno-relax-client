@@ -41,6 +41,12 @@ export default function Chatbot() {
   const socketRef = useRef(null);
   const voiceSentRef = useRef(false); // guard to ensure single send on voice
 
+  // Speech-related refs for robust handling
+  const recognitionRef = useRef(null); // active SpeechRecognition instance
+  const transcriptRef = useRef(""); // stores interim/final transcript
+  const voiceActiveRef = useRef(false); // whether recognition is active
+  const sentFinalRef = useRef(false); // whether final commit sent this session
+
   // Helper to append a message
   const pushMsg = (m) => setMsgs((p) => [...p, m]);
 
@@ -155,8 +161,8 @@ export default function Chatbot() {
 
   /* ---------------- VOICE INPUT ---------------- */
   const handleVoice = () => {
-    // Prevent multiple concurrent voice sends
-    if (voiceSentRef.current) return;
+    // Prevent starting another session while one is active
+    if (voiceActiveRef.current) return;
 
     const SpeechRecognition =
       window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -166,30 +172,77 @@ export default function Chatbot() {
       return;
     }
 
+    // Create recognition instance
     const recognition = new SpeechRecognition();
     recognition.lang = lang;
+    recognition.interimResults = true; // enable interim results for preview only
+    recognition.continuous = false; // short single session
+
+    // Reset state for this session
+    transcriptRef.current = "";
+    sentFinalRef.current = false;
+    voiceActiveRef.current = true;
+    recognitionRef.current = recognition;
+
     setListening(true);
 
-    // Track whether a result was produced so we can reset guard appropriately
-    let hadResult = false;
-    voiceSentRef.current = true;
-    recognition.start();
-
     recognition.onresult = (e) => {
-      hadResult = true;
-      setListening(false);
-      send(e.results[0][0].transcript, true);
+      let interim = "";
+      let final = "";
+
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const r = e.results[i];
+        if (r.isFinal) final += r[0].transcript;
+        else interim += r[0].transcript;
+      }
+
+      // Keep transcript (final preferred)
+      transcriptRef.current = (final || interim).trim();
+
+      // Optional: show interim in input box for user feedback
+      if (interim) setInp(interim);
+
+      // Commit only on final result, and only once per session
+      if (final && !sentFinalRef.current) {
+        sentFinalRef.current = true;
+        setListening(false);
+        voiceActiveRef.current = false;
+        recognitionRef.current = null;
+
+        // Send final transcript once
+        send(final.trim(), true);
+      }
     };
 
-    recognition.onerror = () => {
+    recognition.onerror = (err) => {
+      console.warn("Speech recognition error:", err);
       setListening(false);
-      voiceSentRef.current = false;
+      voiceActiveRef.current = false;
+      recognitionRef.current = null;
     };
 
     recognition.onend = () => {
+      // If recognition ended without a final result, send the last interim once
       setListening(false);
-      if (!hadResult) voiceSentRef.current = false;
+      voiceActiveRef.current = false;
+      recognitionRef.current = null;
+
+      if (!sentFinalRef.current && transcriptRef.current.trim()) {
+        sentFinalRef.current = true;
+        const text = transcriptRef.current.trim();
+        send(text, true);
+      }
     };
+
+    // Start recognition
+    try {
+      recognition.start();
+    } catch (e) {
+      console.warn('Recognition start failed:', e);
+      setListening(false);
+      voiceActiveRef.current = false;
+      recognitionRef.current = null;
+    }
   };
 
   /* ---------------- TEXT TO SPEECH ---------------- */
