@@ -1,139 +1,88 @@
-# SnoRelax Frontend
+# SNO-RELAX — Client
 
+**SNO-RELAX** — AI-Assisted Mental Health & Wellness Platform
 
-This is the frontend for **SnoRelax**, a mental wellness and community platform.  
-Built with React, it provides a user-friendly interface for all core features.
+**Module:** Client (User-facing web application)
 
----
-
-## Table of Contents
-
-- [Project Overview](#project-overview)
-- [Features](#features)
-- [Screenshots](#screenshots)
-- [Setup Instructions](#setup-instructions)
-- [Usage](#usage)
-- [Deployment](#deployment)
-- [Project Structure](#project-structure)
-- [Authors](#authors)
-- [Connected App Links](#connected-app-links)
-- [License](#license)
+**Status:** Final Year Project — Final submission ready
 
 ---
 
-## Project Overview
+## Project Summary
+The Client is a React-based single-page application that provides the main user experience: mood tracking and visualization, an AI-guided chatbot for non-dependent guidance, community groups (posting and replies), report upload & summarization, and small engagement features (games). The app implements a global theme system (Brand / Dark / Light) that persists user preference and updates all pages immediately.
 
-SnoRelax is a web application designed to support mental wellness through mood tracking, community engagement, and chatbot support. The frontend provides a responsive and interactive user experience.
-
----
-
-## Features
-
-- **User Registration & Login:**  
-  Simple forms for user onboarding and authentication.
-
-- **Mood Tracker:**  
-  Users can log and visualize their mood history.
-
-- **Community Dashboard:**  
-  Admins can create and manage communities. Users can view and join communities.
-
-- **Chatbot:**  
-  Users can chat with a supportive bot for mental wellness.
-
-- **Responsive Design:**  
-  Works well on desktop and mobile devices.
-
-- **API Integration:**  
-  Connects seamlessly with the backend for all features.
+> **Academic Declaration:** This module is part of the Final Year Project "SNO-RELAX" and is prepared for academic submission.
 
 ---
 
-## Screenshots
-
-Below are some screenshots of the SnoRelax frontend:
-
-### Login Page
-![Login Page](./screenshots/login.jpg)
-
-### Dashboard
-![Dashboard](./screenshots/Dashboard.jpg)
-
-### Mood Tracker
-![Mood Tracker](./screenshot/mood-tracker.png)
-
-### Community Page
-![Community Page](./screenshots/community.jpg)
-
-### Chatbot
-![Chatbot](./screenshots/chatbot.jpg)
+## Key Features
+- Mood tracking with weekly/monthly analytics and charts
+- AI chatbot (Cohere-backed) for supportive, non-clinical guidance
+- Community groups with real-time messaging (Socket.IO)
+- Hospital report upload and AI-based summarization
+- Optimistic messaging and therapist notes UX with retry behavior
+- Theme system using CSS tokenization and `ThemeContext`
 
 ---
 
-## Setup Instructions
-
-1. **Clone the repository and install dependencies:**
-   ```bash
-   npm install
-   ```
-
-2. **Run locally:**
-   ```bash
-   npm start
-   ```
-
-3. **API Configuration:**  
-   The frontend automatically connects to the correct backend URL for development and production.
+## Technology Stack
+- React (Create React App)
+- Chart.js for data visualization
+- Socket.IO client for real-time updates
+- Axios / fetch for API communication
+- CSS variables (theme tokens) for consistent theming
 
 ---
 
-## Usage
+## Quick Start (Development)
+1. Install dependencies
+```bash
+npm install
+```
 
-- Register or log in to access the dashboard.
-- Track your mood and view analytics.
-- Join or create communities (admin only).
-- Chat with the built-in chatbot for support.
+2. Start the development server
+```bash
+npm start
+```
 
----
-
-## Deployment
-
-The frontend is hosted on Vercel:  
-**[https://sno-relax-client.vercel.app/](https://sno-relax-client.vercel.app/)**
-
-To deploy:
-- Push your code to a Git repository.
-- Connect the repo to [Vercel](https://vercel.com/).
-- Set environment variables if needed.
+3. Environment variables
+Create a `.env` file in the root if you need to override defaults:
+- `REACT_APP_API_BASE` — Backend API base URL (default: https://sno-relax-server.onrender.com)
 
 ---
 
-## Project Structure
-
-- `src/pages/` — Main pages (Login, Dashboard, etc.)
-- `src/components/` — Reusable UI components (Chatbot, MoodTracker, etc.)
-- `src/api.js` — API helper functions
-- `public/` — Static assets
-
----
-
-## Authors
-
-- Shivam Kumar Dubey (Admin)
-- Suryakant Mishra (Admin)
+## Production
+Build the app:
+```bash
+npm run build
+```
+Serve the `build/` directory using a static server or hosting provider.
 
 ---
 
-## Connected App Links
+## Tests
+Run unit and integration tests (Jest + React Testing Library):
+```bash
+npm test
+```
 
-- **Frontend:** [https://sno-relax-client.vercel.app/](https://sno-relax-client.vercel.app/)
-- **Backend:** [https://sno-relax-server-hostside.onrender.com/](https://sno-relax-server-hostside.onrender.com/)
+---
+
+## Theming
+The client uses a single `ThemeContext` mounted at the application root. Theme selection is persisted to `localStorage` (key: `sno_theme`). Contributors should use CSS variables (eg. `var(--bg-primary)`) rather than hard-coded colors.
 
 ---
 
-## License
+## Contribution & Contacts
+- **Lead Developer / Creator:** Shivam Kumar Dubey — GitHub: https://github.com/shivamdubey023
+- **Co-Creator:** Suryakant Mishra
 
-This project is for educational purposes as part of a final year project.  
-[Specify your license here, e.g., MIT, if desired.]
+For academic/reuse inquiries contact the authors via repository contact details.
 
 ---
+
+## License & Usage
+This module is prepared for academic and educational use. For reuse beyond academic review, please contact the project authors.
+
+---
+For full academic documentation and architecture details, see the top-level `SNO-RELAX/` folder in this repository.
