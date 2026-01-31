@@ -145,12 +145,112 @@ export default function AIGuide() {
     }
   };
 
+  // --- Fixed sessions (do not generate new techniques) ---
+  const FIXED_SESSIONS = [
+    {
+      id: 'quick-bodyweight',
+      title: 'Quick Bodyweight Circuit',
+      type: 'exercise',
+      durationMinutes: 12,
+      steps: ['Jumping jacks - 1 min','Bodyweight squats - 1 min','Push-ups (knees ok) - 1 min','Plank - 45s','Rest 30s and repeat 2x']
+    },
+    {
+      id: 'morning-mobility',
+      title: 'Morning Mobility',
+      type: 'yoga',
+      durationMinutes: 8,
+      steps: ['Neck circles - 30s','Shoulder rolls - 30s','Hip circles - 1 min','Sun salutations x3 - 5 min']
+    },
+    {
+      id: 'evening-stretch',
+      title: 'Evening Stretch & Wind-down',
+      type: 'lifestyle',
+      durationMinutes: 12,
+      steps: ['Gentle neck rolls - 1 min','Seated forward fold - 2 min','Legs up the wall - 5 min','Deep breathing - 4 min']
+    }
+  ];
+
+  const [showRoutineModal, setShowRoutineModal] = useState(false);
+  const [currentRoutine, setCurrentRoutine] = useState(null);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [countdown, setCountdown] = useState(0);
+  const stepTimerRef = React.useRef(null);
+
+  const parseDurationSeconds = (text, fallbackTotalMinutes) => {
+    const min = text.match(/(\d+)\s*min/);
+    if (min) return parseInt(min[1], 10) * 60;
+
+    const sec = text.match(/(\d+)\s*s(ec)?/);
+    if (sec) return parseInt(sec[1], 10);
+
+    // If step doesn't have duration, distribute equally from total
+    if (fallbackTotalMinutes) {
+      return Math.max(10, Math.floor((fallbackTotalMinutes * 60) /  Math.max(1, currentRoutine?.steps?.length || 1)));
+    }
+
+    return 30; // default small step
+  };
+
+  const openRoutine = (sessionId) => {
+    const s = FIXED_SESSIONS.find(s => s.id === sessionId);
+    if (!s) return;
+    setCurrentRoutine(s);
+    setCurrentStep(0);
+    // initial countdown for step 0
+    const d = parseDurationSeconds(s.steps[0] || '', s.durationMinutes);
+    setCountdown(d);
+    setShowRoutineModal(true);
+
+    if (stepTimerRef.current) clearInterval(stepTimerRef.current);
+    stepTimerRef.current = setInterval(() => {
+      setCountdown(c => (c > 0 ? c - 1 : 0));
+    }, 1000);
+  };
+
+  const stopRoutine = () => {
+    if (stepTimerRef.current) {
+      clearInterval(stepTimerRef.current);
+      stepTimerRef.current = null;
+    }
+    setShowRoutineModal(false);
+    setCurrentRoutine(null);
+    setCurrentStep(0);
+    setCountdown(0);
+  };
+
+  // advance to next step when countdown hits 0
+  useEffect(() => {
+    if (!currentRoutine) return;
+    if (countdown === 0) {
+      const next = currentStep + 1;
+      if (next < (currentRoutine.steps || []).length) {
+        setCurrentStep(next);
+        const d = parseDurationSeconds(currentRoutine.steps[next] || '', currentRoutine.durationMinutes);
+        setCountdown(d);
+      } else {
+        // routine complete
+        stopRoutine();
+      }
+    }
+  }, [countdown, currentRoutine, currentStep]);
+
   const handleAccept = (category) => {
     // record acceptance so future suggestions can adapt
     localStorage.setItem('aiGuide_lastAction', 'accepted');
     localStorage.setItem('aiGuide_lastAccepted', category);
     setLastAction('accepted');
-    // navigate to the Health Vault where fixed sessions exist
+
+    // If user chose Exercise, open a default exercise session popup (use fixed sessions)
+    if (category === 'Exercise') {
+      // choose first exercise session from FIXED_SESSIONS
+      const s = FIXED_SESSIONS.find(ss => ss.type === 'exercise');
+      if (s) {
+        openRoutine(s.id);
+        return;
+      }
+    }
+
+    // default navigate to health vault where fixed sessions exist
     navigate(`/health-vault?category=${encodeURIComponent(category)}`);
   };
 
@@ -196,6 +296,36 @@ export default function AIGuide() {
               Last action recorded: {lastAction}.
             </p>
           )}
+        </div>
+      )}
+
+      {/* Routine Modal */}
+      {showRoutineModal && currentRoutine && (
+        <div style={{ position: 'fixed', left: 0, top: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
+          <div style={{ background: 'white', borderRadius: 8, padding: 16, maxWidth: 560, width: '95%' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ margin: 0 }}>{currentRoutine.title}</h3>
+              <div>
+                <strong>{currentRoutine.durationMinutes} min</strong>
+              </div>
+            </div>
+
+            <div style={{ marginTop: 12 }}>
+              <p style={{ margin: 0, fontSize: 13, color: '#444' }}>Step {currentStep + 1} / {currentRoutine.steps.length}</p>
+              <p style={{ marginTop: 8 }}>{currentRoutine.steps[currentStep]}</p>
+              <p style={{ fontWeight: 700, fontSize: 20 }}>{Math.floor(countdown/60).toString().padStart(2,'0')}:{String(countdown%60).padStart(2,'0')}</p>
+
+              <div style={{ marginTop: 12, display: 'flex', gap: 8 }}>
+                <button onClick={() => setCountdown(0)} style={{ padding: '8px 16px' }}>Next</button>
+                <button onClick={stopRoutine} style={{ padding: '8px 16px', background: '#e74c3c', color: 'white' }}>Stop</button>
+              </div>
+
+              <div style={{ marginTop: 12 }}>
+                <p style={{ margin: 0, fontSize: 13, color: '#666' }}>Follow the step instructions above. The session will advance automatically when each step's time completes.</p>
+              </div>
+
+            </div>
+          </div>
         </div>
       )}
     </div>
