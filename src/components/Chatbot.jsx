@@ -25,8 +25,10 @@ export default function Chatbot() {
 
   const [msgs, setMsgs] = useState([
     {
+      id: `bot_${Date.now()}`,
       t: "bot",
-      txt: "Hi! I'm SnoBot 🌱 I'm here to listen and support you. How are you feeling today?"
+      txt: "Hi! I'm SnoBot. I'm here to listen and support you. How are you feeling today?",
+      ts: Date.now()
     }
   ]);
 
@@ -35,14 +37,37 @@ export default function Chatbot() {
   const [listening, setListening] = useState(false);
   const [lang, setLang] = useState("en");
   const [lastMessageFromVoice, setLastMessageFromVoice] = useState(false);
-
   const scrollRef = useRef(null);
   const socketRef = useRef(null);
+  const voiceSentRef = useRef(false); // guard to ensure single send on voice
+
+  // Helper to append a message
+  const pushMsg = (m) => setMsgs((p) => [...p, m]);
+
+  // Helper to update last user 'sending' msg to 'sent'
+  const markLastUserSent = () => {
+    setMsgs((prev) => {
+      const copy = prev.slice();
+      for (let i = copy.length - 1; i >= 0; i--) {
+        if (copy[i].t === 'user' && (copy[i].status === 'sending' || !copy[i].status)) {
+          copy[i] = { ...copy[i], status: 'sent' };
+          break;
+        }
+      }
+      return copy;
+    });
+  };
+
 
   /* ---------------- UI SCROLL ---------------- */
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [msgs]);
+
+  // show typing indicator when load true
+  useEffect(() => {
+    // optional additional logic when bot typing
+  }, [load]);
 
   /* ---------------- SOCKET CONNECTION ---------------- */
   useEffect(() => {
@@ -64,7 +89,10 @@ export default function Chatbot() {
         finalText = await translate(data.text, "en", lang);
       }
 
-      setMsgs((p) => [...p, { t: "bot", txt: finalText }]);
+      // mark last user message as sent
+      markLastUserSent();
+
+      pushMsg({ id: `bot_${Date.now()}`, t: "bot", txt: finalText, ts: Date.now() });
 
       // Render mood analysis if provided
       if (data.moodAnalysis) {
@@ -79,15 +107,16 @@ export default function Chatbot() {
             });
           }
 
-          setMsgs((p) => [...p, { t: "bot", txt: suggestion }]);
+          pushMsg({ id: `bot_${Date.now()}_m`, t: "bot", txt: suggestion, ts: Date.now() });
         } catch (e) {
           console.warn("Mood analysis rendering failed:", e);
         }
       }
 
-      // Speak response if message was voice-triggered
-      if (lastMessageFromVoice) {
+      // Speak response only when last message was from voice
+      if (voiceSentRef.current) {
         speak(finalText, lang);
+        voiceSentRef.current = false;
       }
     });
 
@@ -126,6 +155,9 @@ export default function Chatbot() {
 
   /* ---------------- VOICE INPUT ---------------- */
   const handleVoice = () => {
+    // Prevent multiple concurrent voice sends
+    if (voiceSentRef.current) return;
+
     const SpeechRecognition =
       window.SpeechRecognition || window.webkitSpeechRecognition;
 
@@ -137,15 +169,27 @@ export default function Chatbot() {
     const recognition = new SpeechRecognition();
     recognition.lang = lang;
     setListening(true);
+
+    // Track whether a result was produced so we can reset guard appropriately
+    let hadResult = false;
+    voiceSentRef.current = true;
     recognition.start();
 
     recognition.onresult = (e) => {
+      hadResult = true;
       setListening(false);
       send(e.results[0][0].transcript, true);
     };
 
-    recognition.onerror = () => setListening(false);
-    recognition.onend = () => setListening(false);
+    recognition.onerror = () => {
+      setListening(false);
+      voiceSentRef.current = false;
+    };
+
+    recognition.onend = () => {
+      setListening(false);
+      if (!hadResult) voiceSentRef.current = false;
+    };
   };
 
   /* ---------------- TEXT TO SPEECH ---------------- */
@@ -160,7 +204,8 @@ export default function Chatbot() {
   const send = async (msg = inp, isMic = false) => {
     if (!msg.trim()) return;
 
-    setMsgs((p) => [...p, { t: "user", txt: msg }]);
+    // set message as 'sending' so UI can reflect state
+    setMsgs((p) => [...p, { id: `user_${Date.now()}`, t: "user", txt: msg, status: "sending", ts: Date.now() }]);
     setInp("");
     setLoad(true);
     setLastMessageFromVoice(isMic);
