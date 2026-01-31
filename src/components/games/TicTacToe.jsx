@@ -241,5 +241,66 @@ export default function TicTacToe() {
   };
 
   /* ---------- UI STATES BELOW (UNCHANGED) ---------- */
-  // (UI rendering code remains exactly as you wrote it)
+
+  return (
+    <div className="game-card">
+      <div className="game-top">
+        <h2>Tic-Tac-Toe</h2>
+        <div style={{ marginTop: 8, width: "100%" }}>
+          {bannerVisible && <div className="game-banner">{message}</div>}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8 }}>
+            <div style={{ fontWeight: 700 }}>Round {currentRound}/{totalRounds || "—"}</div>
+            <div style={{ fontSize: 13, color: "var(--text-secondary)" }}>
+              You: {userScore} &nbsp; • &nbsp; AI: {botScore} &nbsp; • &nbsp; Draws: {draws}
+            </div>
+          </div>
+        </div>
+
+        {showRoundSelect && (
+          <div style={{ marginTop: 12, display: "flex", gap: 8, alignItems: "center" }}>
+            <div style={{ fontWeight: 600 }}>Select rounds:</div>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button className="btn" onClick={() => selectRounds(1)}>1</button>
+              <button className="btn" onClick={() => selectRounds(3)}>3</button>
+              <button className="btn" onClick={() => selectRounds(5)}>5</button>
+            </div>
+          </div>
+        )}
+
+      </div>
+
+      {!showRoundSelect && (
+        <div style={{ marginTop: 12 }}>
+          <div className="ttt-board">
+            {board.map((cell, i) => (
+              <button
+                key={i}
+                className={`ttt-cell ${cell ? "filled" : ""}`}
+                onClick={() => onCell(i)}
+                aria-label={`Cell ${i + 1}`}
+              >
+                {cell}
+              </button>
+            ))}
+          </div>
+
+          <div className="ttt-message">{message}</div>
+
+          <div className="game-actions">
+            {!finished && <button className="btn" onClick={resetRound}>Reset Round</button>}
+            {finished && !gameSeriesComplete && <button className="btn" onClick={nextRound}>Next Round</button>}
+            {gameSeriesComplete && (
+              <>
+                <div style={{ marginBottom: 8, fontWeight: 700 }}>Series complete</div>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <button className="btn" onClick={playAgain}>Play Again</button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
+

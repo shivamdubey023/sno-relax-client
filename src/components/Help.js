@@ -126,7 +126,7 @@ export default function Help() {
       </h1>
 
       {/* Tab Navigation */}
-      <div style={{ display: "flex", borderBottom: "2px solid rgba(0,0,0,0.06)", gap: 8 }}>
+      <div style={{ display: "flex", borderBottom: "2px solid var(--divider)", gap: 8 }}>
         <button className={`tab-btn ${activeTab === 'faq' ? 'active' : ''}`} onClick={() => setActiveTab("faq")}>
           FAQ
         </button>

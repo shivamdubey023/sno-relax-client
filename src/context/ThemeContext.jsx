@@ -68,6 +68,7 @@ export const ThemeProvider = ({ children }) => {
       "--input-bg": "#062033",
       "--input-text": "#FFFFFF",
       "--placeholder": "#9CA3AF",
+      "--divider": "rgba(255,255,255,0.06)",
       // mood band colors
       "--mood-high": "#22c55e",
       "--mood-mid": "#3b82f6",
@@ -86,6 +87,7 @@ export const ThemeProvider = ({ children }) => {
       "--input-bg": "#0b1220",
       "--input-text": "#FFFFFF",
       "--placeholder": "#9CA3AF",
+      "--divider": "rgba(255,255,255,0.06)",
       // mood band colors (slightly desaturated for dark)
       "--mood-high": "#16a34a",
       "--mood-mid": "#2563eb",
@@ -104,6 +106,7 @@ export const ThemeProvider = ({ children }) => {
       "--input-bg": "#FFFFFF",
       "--input-text": "#000000",
       "--placeholder": "#6B7280",
+      "--divider": "rgba(11,30,61,0.06)",
       // mood band colors for light
       "--mood-high": "#16a34a",
       "--mood-mid": "#3b82f6",

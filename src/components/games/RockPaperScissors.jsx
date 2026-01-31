@@ -174,12 +174,7 @@ export default function RockPaperScissors() {
               <button
                 key={r}
                 onClick={() => selectRounds(r)}
-                style={{
-                  padding: "10px 20px",
-                  fontSize: "14px",
-                  cursor: "pointer",
-                  borderRadius: "6px",
-                }}
+                className="btn"
               >
                 {r} Rounds
               </button>
@@ -214,7 +209,7 @@ export default function RockPaperScissors() {
               : "💪 Well played! Try again to win!"}
           </div>
 
-          <button onClick={playAgain}>Play Again</button>
+          <button className="btn" onClick={playAgain}>Play Again</button>
         </div>
       </div>
     );
