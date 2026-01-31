@@ -182,7 +182,7 @@ export default function Profile() {
             </label>
           )}
           <h2 className="username">{user.name}</h2>
-          <div style={{ fontSize: 13, color: "#666" }}>
+          <div className="muted-text small-text">
             Nickname: <strong>{communityNickname}</strong>
           </div>
           <p className="user-id">ID: {user.id}</p>

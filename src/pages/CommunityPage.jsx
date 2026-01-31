@@ -391,7 +391,7 @@ export default function CommunityPage() {
                   style={{ maxHeight: messagesMaxHeight, minHeight: 200 }}
                 >
                   {messages.length === 0 ? (
-                    <div style={{ padding: 16, color: '#777' }}>No messages yet.</div>
+                    <div className="muted-text" style={{ padding: 16 }}>No messages yet.</div>
                   ) : (
                     messages.map((m) => {
                       const mid = m._id || m.id;

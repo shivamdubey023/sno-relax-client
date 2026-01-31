@@ -12,6 +12,7 @@ import {
   Legend,
 } from "chart.js";
 import "../styles/MoodTracker.css";
+import { useTheme } from "../context/ThemeContext";
 
 /* --------------------------------------------------
    Chart.js registration (required once globally)
@@ -143,19 +144,51 @@ export default function MoodTracker() {
 
   /* --------------------------------------------------
      CHART COLOR (memoized for performance)
+     - Use CSS variables so theme changes propagate
   -------------------------------------------------- */
+  // NOTE: Use ThemeContext so component recomputes when theme changes
+  const { theme } = useTheme();
+
   const moodColor = useMemo(() => {
-    if (!moodData.length) return "#3b82f6";
+    // helper to read a CSS var from document root
+    const readVar = (name, fallback) => {
+      try {
+        const val = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+        return val || fallback;
+      } catch (e) {
+        return fallback;
+      }
+    };
+
+    // helper to convert hex -> rgba
+    const hexToRgba = (hex, alpha = 0.18) => {
+      if (!hex) return `rgba(59,130,246,${alpha})`;
+      hex = hex.replace('#', '');
+      if (hex.length === 3) hex = hex.split('').map(h => h + h).join('');
+      const bigint = parseInt(hex, 16);
+      const r = (bigint >> 16) & 255;
+      const g = (bigint >> 8) & 255;
+      const b = bigint & 255;
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    };
+
+    if (!moodData.length) {
+      const mid = readVar('--mood-mid', '#3b82f6');
+      return { border: mid, background: hexToRgba(mid, 0.18) };
+    }
 
     const avg =
       moodData.reduce((sum, d) => sum + d.mood, 0) / moodData.length;
 
-    if (avg >= 4) return "#22c55e";
-    if (avg >= 3) return "#3b82f6";
-    if (avg >= 2) return "#facc15";
-    if (avg >= 1) return "#f97316";
-    return "#ef4444";
-  }, [moodData]);
+    let varName = '--mood-verylow';
+    if (avg >= 4) varName = '--mood-high';
+    else if (avg >= 3) varName = '--mood-mid';
+    else if (avg >= 2) varName = '--mood-low';
+    else if (avg >= 1) varName = '--mood-low';
+
+    const hex = readVar(varName, '#3b82f6');
+    return { border: hex, background: hexToRgba(hex, 0.18) };
+  }, [moodData, theme]);
 
   /* --------------------------------------------------
      CHART DATA
@@ -172,8 +205,8 @@ export default function MoodTracker() {
       {
         label: "Mood Level",
         data: moodData.map((d) => d.mood),
-        borderColor: moodColor,
-        backgroundColor: `${moodColor}33`,
+        borderColor: moodColor.border,
+        backgroundColor: moodColor.background,
         tension: 0.4,
         fill: true,
         pointRadius: 5,

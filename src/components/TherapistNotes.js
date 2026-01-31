@@ -403,8 +403,8 @@ export default function TherapistNotes() {
                     <small className="msg-meta">
                       {m.createdAt ? new Date(m.createdAt).toLocaleString() : ""} • <strong>{isMine ? "You" : "Admin"}</strong>
                     </small>
-                    {m.pending && <small style={{ color: '#888', fontSize: 12 }}>Sending…</small>}
-                    {m.retrying && <small style={{ color: '#888', fontSize: 12 }}>Retrying…</small>}
+                    {m.pending && <small className="muted-text small-text" style={{ fontSize: 12 }}>Sending…</small>}
+                    {m.retrying && <small className="muted-text small-text" style={{ fontSize: 12 }}>Retrying…</small>}
                     {m.failed && isMine && (
                       <button
                         className="retry-btn"

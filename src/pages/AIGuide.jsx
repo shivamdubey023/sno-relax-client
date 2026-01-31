@@ -270,7 +270,7 @@ export default function AIGuide() {
       {loading && <p>Checking your recent mood data...</p>}
 
       {!loading && (
-        <div style={{ padding: 12, background: '#f7fbfc', borderRadius: 8 }}>
+        <div style={{ padding: 12, background: 'var(--bg-secondary)', borderRadius: 8 }}>
           <p style={{ margin: 0 }}>{message}</p>
 
           {categories && categories.length > 0 && (
@@ -292,7 +292,7 @@ export default function AIGuide() {
           )}
 
           {lastAction && (
-            <p style={{ marginTop: 8, fontSize: 13, color: '#555' }}>
+            <p style={{ marginTop: 8, fontSize: 13, color: 'var(--text-secondary)' }}>
               Last action recorded: {lastAction}.
             </p>
           )}
@@ -311,7 +311,7 @@ export default function AIGuide() {
             </div>
 
             <div style={{ marginTop: 12 }}>
-              <p style={{ margin: 0, fontSize: 13, color: '#444' }}>Step {currentStep + 1} / {currentRoutine.steps.length}</p>
+              <p style={{ margin: 0, fontSize: 13, color: 'var(--text-primary)' }}>Step {currentStep + 1} / {currentRoutine.steps.length}</p>
               <p style={{ marginTop: 8 }}>{currentRoutine.steps[currentStep]}</p>
               <p style={{ fontWeight: 700, fontSize: 20 }}>{Math.floor(countdown/60).toString().padStart(2,'0')}:{String(countdown%60).padStart(2,'0')}</p>
 
@@ -321,7 +321,7 @@ export default function AIGuide() {
               </div>
 
               <div style={{ marginTop: 12 }}>
-                <p style={{ margin: 0, fontSize: 13, color: '#666' }}>Follow the step instructions above. The session will advance automatically when each step's time completes.</p>
+                <p style={{ margin: 0, fontSize: 13, color: 'var(--text-secondary)' }}>Follow the step instructions above. The session will advance automatically when each step's time completes.</p>
               </div>
 
             </div>

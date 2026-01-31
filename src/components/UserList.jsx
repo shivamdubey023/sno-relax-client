@@ -37,7 +37,7 @@ const UserList = ({ users = [] }) => {
       <h2>User List</h2>
 
       {users.length === 0 ? (
-        <p style={{ color: "#666", fontSize: 14 }}>
+        <p className="muted-text" style={{ fontSize: 14 }}>
           No users available.
         </p>
       ) : (
@@ -45,7 +45,7 @@ const UserList = ({ users = [] }) => {
           {users.map((user) => (
             <li key={user.id}>
               <strong>{user.name}</strong>{" "}
-              <span style={{ color: "#666" }}>
+              <span className="muted-text">
                 ({user.email})
               </span>
             </li>
