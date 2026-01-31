@@ -30,12 +30,19 @@ export default function TherapistNotes() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [listening, setListening] = useState(false);
 
   // Refs for scrolling & focus handling
   const messagesRef = useRef(null);
-  const textareaRef = useRef(null);
+  const inputRef = useRef(null);
   const inputAreaRef = useRef(null);
   const lastMessageRef = useRef(null);
+
+  // Speech refs (to ensure one final send per session)
+  const recognitionRef = useRef(null);
+  const transcriptRef = useRef("");
+  const voiceActiveRef = useRef(false);
+  const sentFinalRef = useRef(false);
 
   // Stable user identity
   const userId =
@@ -76,7 +83,7 @@ export default function TherapistNotes() {
    */
   useEffect(() => {
     fetchMessages();
-    if (textareaRef.current) textareaRef.current.focus();
+    if (inputRef.current) inputRef.current.focus();
   }, []);
 
   /**
@@ -90,9 +97,10 @@ export default function TherapistNotes() {
       try {
         const active = document.activeElement;
         if (
-          textareaRef.current &&
+          inputRef.current &&
           active &&
-          textareaRef.current.contains(active)
+          inputRef.current.contains &&
+          inputRef.current.contains(active)
         )
           return;
 
@@ -166,7 +174,7 @@ export default function TherapistNotes() {
       if (res.ok) {
         setInput("");
         await fetchMessages();
-        textareaRef.current?.focus();
+        inputRef.current?.focus();
       } else {
         console.error("Failed to send message");
       }
@@ -180,6 +188,7 @@ export default function TherapistNotes() {
   /**
    * Enter-to-send (Shift+Enter for newline)
    */
+  // keep for compatibility (not used for input element) - preserved for potential textarea fallback
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -187,15 +196,95 @@ export default function TherapistNotes() {
     }
   };
 
+  // Start voice recognition (one final send per session)
+  const startVoice = () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert('Voice input not supported in this browser.');
+      return;
+    }
+
+    if (voiceActiveRef.current) return;
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'en';
+    recognition.interimResults = true;
+    recognition.continuous = false;
+
+    transcriptRef.current = '';
+    sentFinalRef.current = false;
+    voiceActiveRef.current = true;
+    recognitionRef.current = recognition;
+
+    setListening(true);
+
+    recognition.onresult = (e) => {
+      let interim = '';
+      let final = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const r = e.results[i];
+        if (r.isFinal) final += r[0].transcript;
+        else interim += r[0].transcript;
+      }
+
+      transcriptRef.current = (final || interim).trim();
+
+      // show interim in input for preview
+      if (interim) setInput(interim);
+
+      if (final && !sentFinalRef.current) {
+        sentFinalRef.current = true;
+        setListening(false);
+        voiceActiveRef.current = false;
+        recognitionRef.current = null;
+        setInput(final.trim());
+        sendMessage();
+      }
+    };
+
+    recognition.onerror = (err) => {
+      console.warn('Speech recognition error:', err);
+      setListening(false);
+      voiceActiveRef.current = false;
+      recognitionRef.current = null;
+    };
+
+    recognition.onend = () => {
+      setListening(false);
+      voiceActiveRef.current = false;
+      recognitionRef.current = null;
+
+      if (!sentFinalRef.current && transcriptRef.current.trim()) {
+        sentFinalRef.current = true;
+        setInput(transcriptRef.current.trim());
+        sendMessage();
+      }
+    };
+
+    try {
+      recognition.start();
+    } catch (e) {
+      console.warn('Recognition failed to start:', e);
+      setListening(false);
+      voiceActiveRef.current = false;
+      recognitionRef.current = null;
+    }
+  };
+
   return (
     <div className="chatbot-container therapist-notes">
-      {/* Header */}
-      <div style={{ marginBottom: 16 }}>
-        <h3>Private chat with Admin</h3>
-        <p style={{ color: "#555" }}>
-          Send a private message to the admin/therapist. Replies are visible only
-          to you.
-        </p>
+      {/* Header (chatbot-like) */}
+      <div className="chat-header">
+        <div className="header-top">
+          <div className="header-left" />
+
+          <div className="header-center">
+            <h3 className="chat-title">👤 Admin</h3>
+            <p className="chat-subtitle">Private messages with your admin/therapist</p>
+          </div>
+
+          <div className="header-right" />
+        </div>
       </div>
 
       {/* Messages */}
@@ -247,15 +336,37 @@ export default function TherapistNotes() {
       {/* Input */}
       <div className="chat-input-area" ref={inputAreaRef}>
         <div className="input-controls">
-          <textarea
-            ref={textareaRef}
+          <button
+            className={`voice-btn ${listening ? 'active' : ''}`}
+            onClick={() => {
+              if (voiceActiveRef.current && recognitionRef.current) {
+                recognitionRef.current.stop();
+              } else {
+                startVoice();
+              }
+            }}
+            disabled={loading}
+            aria-label="Voice input"
+            title="Voice input"
+          >
+            🎤
+          </button>
+
+          <input
+            ref={inputRef}
             className="chat-input"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Type a private message to admin..."
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                if (!loading && input.trim()) sendMessage();
+              }
+            }}
+            placeholder="type message"
             aria-label="Private message to admin"
           />
+
           <button
             onClick={sendMessage}
             className="send-btn"
