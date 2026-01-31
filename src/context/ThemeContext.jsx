@@ -75,6 +75,11 @@ export const ThemeProvider = ({ children }) => {
       // Chat title color in light theme must be black
       document.documentElement.style.setProperty("--chat-title-color", "#000000");
 
+      // Group hover/active variables for light theme
+      document.documentElement.style.setProperty("--group-hover-bg", "#1f2937");
+      document.documentElement.style.setProperty("--group-hover-text", "#ffffff");
+      document.documentElement.style.setProperty("--group-active-bg", "#1f2937");
+
       // Therapist-specific variables fall back to defaults for light theme
       document.documentElement.style.setProperty("--therapist-chat-bg", "#ffffff");
       document.documentElement.style.setProperty("--therapist-text", "#000000");
@@ -96,7 +101,12 @@ export const ThemeProvider = ({ children }) => {
       document.documentElement.style.setProperty("--chat-input-placeholder", "#9CA3AF");
       // Chat title color in dark theme must be white
       document.documentElement.style.setProperty("--chat-title-color", "#FFFFFF");
-      // Defaults for non-light themes (dark). If user chooses the `therapist`
+
+      // Group hover/active variables for dark theme
+      document.documentElement.style.setProperty("--group-hover-bg", "rgba(255,255,255,0.06)");
+      document.documentElement.style.setProperty("--group-hover-text", "#ffffff");
+      document.documentElement.style.setProperty("--group-active-bg", "rgba(255,255,255,0.06)");
+    }      // Defaults for non-light themes (dark). If user chooses the `therapist`
       // theme we override below to ensure therapist page colors are applied.
       document.documentElement.style.setProperty("--therapist-chat-bg", "#0b1220");
       document.documentElement.style.setProperty("--therapist-text", "#000000");

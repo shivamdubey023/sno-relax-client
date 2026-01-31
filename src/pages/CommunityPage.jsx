@@ -19,7 +19,8 @@ export default function CommunityPage() {
   const navigate = useNavigate();
 
   // ---- UI: hamburger/menu for groups (mobile/top) ----
-  const [menuOpen, setMenuOpen] = useState(true); // controls sidebar visibility
+  // Start CLOSED by default for mobile-first behavior
+  const [menuOpen, setMenuOpen] = useState(false); // controls sidebar visibility
 
   // ---- Core state ----
   const [groups, setGroups] = useState([]);
@@ -300,17 +301,26 @@ export default function CommunityPage() {
   return (
     <div className="community-page">
       {/* Sidebar: Groups */}
+      {/* Mobile hamburger in top-left */}
+      <div className="community-topbar">
+        <button className="hamburger" onClick={() => setMenuOpen((s) => !s)} aria-label="Toggle groups">☰</button>
+        <div className="topbar-title">Community</div>
+      </div>
+
       {/* Sidebar: Groups (toggleable via hamburger) */}
-      <aside className="community-sidebar" style={{ display: menuOpen ? 'flex' : 'none' }}>
+      <aside className={`community-sidebar ${menuOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
           <h2>Communities</h2>
-          <button
-            className="create-btn"
-            title="Create group"
-            onClick={() => setShowCreateModal(true)}
-          >
-            +
-          </button>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <button
+              className="create-btn"
+              title="Create group"
+              onClick={() => setShowCreateModal(true)}
+            >
+              +
+            </button>
+            <button className="close-sidebar" onClick={() => setMenuOpen(false)} aria-label="Close groups">✕</button>
+          </div>
         </div>
 
         <div className="groups-list">
@@ -352,6 +362,7 @@ export default function CommunityPage() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                 <button onClick={() => navigate('/dashboard')} style={{ border: 'none', background: 'transparent', cursor: 'pointer' }} aria-label="Back to Dashboard">← Back</button>
                 <div className="header-info">
+                  <button className="hamburger small" onClick={() => setMenuOpen(true)} aria-label="Open groups">☰</button>
                   <h3>{selectedGroup.name}</h3>
                   <p>{selectedGroup.description || ''}</p>
                 </div>
@@ -413,13 +424,13 @@ export default function CommunityPage() {
                 <div className="msg-input-area" ref={inputAreaRef}>
                   <div className="nickname-display">You are: <strong>{nickname}</strong></div>
                   <form onSubmit={sendMessage}>
-                    <textarea
+                    <input
                       ref={msgInputRef}
-                      className="msg-input"
+                      className="msg-input chat-input"
                       value={msgInput}
                       onChange={(e) => setMsgInput(e.target.value)}
-                      onKeyDown={handleKeyDown}
-                      placeholder={isMember ? 'Write a message (press Ctrl+Enter to send)' : 'Join the group to send messages.'}
+                      onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); sendMessage(e); } }}
+                      placeholder={isMember ? 'Write a message' : 'Join the group to send messages.'}
                       disabled={!isMember || loading}
                     />
                     <button className="msg-send" type="submit" disabled={loading || !isMember} aria-label="Send message">
