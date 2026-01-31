@@ -88,7 +88,7 @@ function App() {
             path="/"
             element={
               <ProtectedRoute isLoggedIn={isLoggedIn}>
-                <Dashboard onLogout={handleLogout} />
+                <Dashboard isLoggedIn={isLoggedIn} onLogout={handleLogout} />
               </ProtectedRoute>
             }
           />

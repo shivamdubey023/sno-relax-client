@@ -86,7 +86,8 @@ export default function Dashboard({ isLoggedIn, onLogout }) {
 
   // ---- Navigation guard ----
   const requireLogin = (path) => {
-    if (!isLoggedIn) navigate("/login");
+    const logged = isLoggedIn || !!localStorage.getItem("authToken");
+    if (!logged) navigate("/login");
     else navigate(path);
   };
 
@@ -181,7 +182,12 @@ export default function Dashboard({ isLoggedIn, onLogout }) {
 
         <div className="sidebar-footer">
           {isLoggedIn && (
-            <button onClick={onLogout}>
+            <button
+              onClick={() => {
+                onLogout();
+                navigate("/login");
+              }}
+            >
               <LogOut size={18} /> Logout
             </button>
           )}

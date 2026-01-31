@@ -97,7 +97,7 @@ export default function Login({ onLogin }) {
       localStorage.setItem("authToken", token);
       if (onLogin) onLogin(token);
 
-      navigate("/dashboard");
+      navigate("/");
     } catch (err) {
       console.error(err);
       setErrorMessage("Something went wrong. Please try again.");
@@ -163,7 +163,7 @@ export default function Login({ onLogin }) {
       localStorage.setItem("authToken", token);
       if (onLogin) onLogin(token);
 
-      navigate("/dashboard");
+      navigate("/");
     } catch (err) {
       console.error(err);
       setErrorMessage("Something went wrong. Please try again.");

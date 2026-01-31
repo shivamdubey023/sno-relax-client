@@ -17,7 +17,7 @@ const MoodTrackerPage = () => {
 
       <MoodTracker />
 
-      <button onClick={() => navigate("/dashboard")} className="btn back-btn">
+      <button onClick={() => navigate("/")} className="btn back-btn">
         ⬅ Back to Dashboard
       </button>
     </div>

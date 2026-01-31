@@ -166,7 +166,7 @@ export default function Profile() {
   return (
     <div className="profile-container">
       <div className="profile-topbar">
-        <button className="back-btn" onClick={() => navigate("/dashboard")}>
+        <button className="back-btn" onClick={() => navigate("/") }>
           ← Back to Dashboard
         </button>
         <span className="profile-app-title">SnoRelax</span>
