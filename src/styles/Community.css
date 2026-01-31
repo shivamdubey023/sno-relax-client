@@ -127,6 +127,9 @@
   background: var(--group-hover-bg, rgba(0,0,0,0.12));
   transition: background 160ms ease, transform 120ms ease;
   transform: translateY(-2px);
+}
+
+.group-item:hover .group-info h4,
 .group-item:hover .group-info p {
   color: var(--group-hover-text, #fff);
 }

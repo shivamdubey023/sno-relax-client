@@ -76,6 +76,85 @@ export default function TherapistNotes() {
     }
   };
 
+  const mergeMessages = (prev = [], incoming = []) => {
+    const result = prev.slice();
+
+    incoming.forEach((msg) => {
+      const similarIdx = result.findIndex(
+        (r) =>
+          r.pending &&
+          r.senderId === msg.senderId &&
+          r.message === msg.message &&
+          Math.abs(new Date(r.createdAt).getTime() - new Date(msg.createdAt).getTime()) < 6000
+      );
+
+      const existsById = msg._id && result.some((r) => r._id === msg._id);
+
+      if (existsById) {
+        if (similarIdx !== -1) {
+          result.splice(similarIdx, 1, msg);
+        }
+      } else if (similarIdx !== -1) {
+        result.splice(similarIdx, 1, msg);
+      } else {
+        result.push(msg);
+      }
+    });
+
+    const seen = new Map();
+    const deduped = [];
+    result.forEach((m) => {
+      const key = m._id || `${m.senderId}|${m.message}|${Math.floor(new Date(m.createdAt).getTime() / 10000)}`;
+      if (!seen.has(key)) {
+        seen.set(key, true);
+        deduped.push(m);
+      }
+    });
+
+    deduped.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+    return deduped;
+  };
+
+  const sendPayload = async (payload, tempId) => {
+    try {
+      const res = await fetch(`${API_BASE}/api/private/message`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (res.ok) {
+        const json = await res.json();
+        const created = (json && (json.message || json.data) && (json.message && json.message._id ? json.message : json)) || (json && json._id ? json : null);
+        if (created && created._id) {
+          setMessages((prev) => {
+            const idx = prev.findIndex((m) => m._id === tempId || (m.pending && m.message === payload.message));
+            if (idx !== -1) {
+              const copy = prev.slice();
+              copy.splice(idx, 1, created);
+              return copy;
+            }
+            return mergeMessages(prev, [created]);
+          });
+        } else {
+          await fetchMessages();
+        }
+      } else {
+        setMessages((prev) =>
+          prev.map((m) => (m._id === tempId ? { ...m, failed: true, pending: false } : m))
+        );
+        console.error("Failed to send message");
+      }
+    } catch (e) {
+      setMessages((prev) =>
+        prev.map((m) => (m._id === tempId ? { ...m, failed: true, pending: false } : m))
+      );
+      console.error("Send message error:", e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   /**
    * Initial load
    * - Fetch messages
@@ -153,36 +232,40 @@ export default function TherapistNotes() {
   /**
    * Send message to admin
    */
-  const sendMessage = async () => {
-    if (!input.trim()) return;
+  const sendMessage = async (textParam) => {
+    const text = typeof textParam === 'string' ? textParam.trim() : input.trim();
+    if (!text) return;
 
     setLoading(true);
+    setInput("");
 
-    try {
-      const payload = {
-        senderId: userId,
-        receiverId: "admin",
-        message: input.trim(),
-      };
+    const tempId = `t_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+    const tempMsg = {
+      _id: tempId,
+      senderId: userId,
+      receiverId: "admin",
+      message: text,
+      createdAt: new Date().toISOString(),
+      pending: true,
+    };
 
-      const res = await fetch(`${API_BASE}/api/private/message`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+    setMessages((prev) => [...prev, tempMsg]);
+    inputRef.current?.focus();
 
-      if (res.ok) {
-        setInput("");
-        await fetchMessages();
-        inputRef.current?.focus();
-      } else {
-        console.error("Failed to send message");
-      }
-    } catch (e) {
-      console.error("Send message error:", e);
-    } finally {
-      setLoading(false);
-    }
+    await sendPayload({ senderId: userId, receiverId: "admin", message: text }, tempId);
+  };
+
+  const retrySend = async (msg) => {
+    if (!msg || !msg.message) return;
+    setLoading(true);
+    setMessages((prev) => prev.map((m) => (m._id === msg._id ? { ...m, failed: false, retrying: true } : m)));
+
+    const tempId = `t_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+    const tempMsg = { ...msg, _id: tempId, pending: true, retrying: true, createdAt: new Date().toISOString() };
+
+    setMessages((prev) => prev.map((m) => (m._id === msg._id ? tempMsg : m)));
+
+    await sendPayload({ senderId: userId, receiverId: "admin", message: msg.message }, tempId);
   };
 
   /**
@@ -238,7 +321,7 @@ export default function TherapistNotes() {
         voiceActiveRef.current = false;
         recognitionRef.current = null;
         setInput(final.trim());
-        sendMessage();
+        sendMessage(final.trim());
       }
     };
 
@@ -257,7 +340,7 @@ export default function TherapistNotes() {
       if (!sentFinalRef.current && transcriptRef.current.trim()) {
         sentFinalRef.current = true;
         setInput(transcriptRef.current.trim());
-        sendMessage();
+        sendMessage(transcriptRef.current.trim());
       }
     };
 
@@ -316,13 +399,21 @@ export default function TherapistNotes() {
                   }`}
                 >
                   <div className="msg-content">{m.message}</div>
-                  <div style={{ marginTop: 6 }}>
+                  <div style={{ marginTop: 6, display: 'flex', gap: 8, alignItems: 'center' }}>
                     <small className="msg-meta">
-                      {m.createdAt
-                        ? new Date(m.createdAt).toLocaleString()
-                        : ""}{" "}
-                      • <strong>{isMine ? "You" : "Admin"}</strong>
+                      {m.createdAt ? new Date(m.createdAt).toLocaleString() : ""} • <strong>{isMine ? "You" : "Admin"}</strong>
                     </small>
+                    {m.pending && <small style={{ color: '#888', fontSize: 12 }}>Sending…</small>}
+                    {m.retrying && <small style={{ color: '#888', fontSize: 12 }}>Retrying…</small>}
+                    {m.failed && isMine && (
+                      <button
+                        className="retry-btn"
+                        onClick={() => retrySend(m)}
+                        style={{ marginLeft: 8, background: 'transparent', border: '1px solid #e74c3c', color: '#e74c3c', borderRadius: 6, padding: '2px 6px', cursor: 'pointer' }}
+                      >
+                        Retry
+                      </button>
+                    )}
                   </div>
                 </div>
 
