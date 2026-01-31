@@ -259,20 +259,36 @@ export default function Chatbot() {
       </div>
 
       <div className="chat-input-area">
-        <button onClick={handleVoice} disabled={load}>
-          🎤
-        </button>
+        <div className="input-controls">
+          <button
+            className={`voice-btn ${listening ? "active" : ""}`}
+            onClick={handleVoice}
+            disabled={load}
+            aria-label="Voice input"
+            title="Voice input"
+          >
+            🎤
+          </button>
 
-        <input
-          value={inp}
-          onChange={(e) => setInp(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && send()}
-          placeholder="Type a message..."
-        />
+          <input
+            className="chat-input"
+            value={inp}
+            onChange={(e) => setInp(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && send()}
+            placeholder="Type a message..."
+            aria-label="Message input"
+          />
 
-        <button onClick={() => send()} disabled={load}>
-          ➤
-        </button>
+          <button
+            className="send-btn"
+            onClick={() => send()}
+            disabled={load}
+            aria-label="Send message"
+            title="Send"
+          >
+            ➤
+          </button>
+        </div>
       </div>
     </div>
   );
