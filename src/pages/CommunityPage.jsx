@@ -2,6 +2,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { API_ENDPOINTS, SOCKET_URL } from "../config/api.config";
 import { io } from "socket.io-client";
+import { useNavigate } from 'react-router-dom';
 import "../styles/Community.css";
 
 export default function CommunityPage() {
@@ -15,6 +16,10 @@ export default function CommunityPage() {
   const [currentUserId, setCurrentUserId] = useState(storedUserId);
   const userRole = localStorage.getItem("userRole") || "user";
   const isLoggedIn = !!currentUserId;
+  const navigate = useNavigate();
+
+  // ---- UI: hamburger/menu for groups (mobile/top) ----
+  const [menuOpen, setMenuOpen] = useState(true); // controls sidebar visibility
 
   // ---- Core state ----
   const [groups, setGroups] = useState([]);
@@ -85,9 +90,10 @@ export default function CommunityPage() {
     return () => window.removeEventListener("resize", updateHeight);
   }, [selectedGroup]);
 
-  // ---- Socket setup ----
+  // ---- Socket setup (only for members) ----
   useEffect(() => {
-    if (!selectedGroup || !currentUserId) return;
+    const member = selectedGroup && groupMembers.some((m) => m.userId === currentUserId);
+    if (!selectedGroup || !currentUserId || !member) return;
 
     const socket = io(SOCKET_URL, {
       transports: ["websocket", "polling"],
@@ -107,21 +113,26 @@ export default function CommunityPage() {
     });
 
     return () => {
-      socket.emit("leaveGroup", selectedGroup._id);
+      try {
+        socket.emit("leaveGroup", selectedGroup._id);
+      } catch {}
       socket.disconnect();
       socketRef.current = null;
     };
-  }, [selectedGroup, currentUserId]);
+  }, [selectedGroup, currentUserId, groupMembers]);
 
-  // ---- Load members + messages on group select ----
+  // ---- Load members on group select and only load messages for members ----
   useEffect(() => {
     if (!selectedGroup) return;
     (async () => {
       setMessages([]);
       const members = await loadGroupMembers();
-      const isMember = members.some((m) => m.userId === currentUserId);
-      if (!selectedGroup.isPrivate || isMember) {
+      const member = members.some((m) => m.userId === currentUserId);
+      if (member) {
         await loadMessages();
+      } else {
+        // Ensure messages are cleared for non-members
+        setMessages([]);
       }
     })();
   }, [selectedGroup]);
@@ -289,7 +300,8 @@ export default function CommunityPage() {
   return (
     <div className="community-page">
       {/* Sidebar: Groups */}
-      <aside className="community-sidebar">
+      {/* Sidebar: Groups (toggleable via hamburger) */}
+      <aside className="community-sidebar" style={{ display: menuOpen ? 'flex' : 'none' }}>
         <div className="sidebar-header">
           <h2>Communities</h2>
           <button
@@ -312,7 +324,7 @@ export default function CommunityPage() {
                 <div
                   key={gid}
                   className={`group-item ${active ? 'active' : ''}`}
-                  onClick={() => setSelectedGroup(g)}
+                  onClick={() => { setSelectedGroup(g); setMenuOpen(false); }}
                 >
                   <div className="group-info">
                     <h4>{g.name}</h4>
@@ -337,22 +349,27 @@ export default function CommunityPage() {
         ) : (
           <>
             <div className="chat-header-comm">
-              <div className="header-info">
-                <h3>{selectedGroup.name}</h3>
-                <p>{selectedGroup.description || ''}</p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <button onClick={() => navigate('/dashboard')} style={{ border: 'none', background: 'transparent', cursor: 'pointer' }} aria-label="Back to Dashboard">← Back</button>
+                <div className="header-info">
+                  <h3>{selectedGroup.name}</h3>
+                  <p>{selectedGroup.description || ''}</p>
+                </div>
               </div>
 
               <div className="header-actions">
                 {isMember ? (
                   <button
                     className="leave-btn"
+                    style={{ background: '#e74c3c' }}
                     onClick={() => leaveGroup(selectedGroup._id || selectedGroup.id)}
                   >
                     Leave
                   </button>
                 ) : (
                   <button
-                    className="create-btn"
+                    className="join-btn"
+                    style={{ color: '#000', background: 'transparent', border: '1px solid #333' }}
                     onClick={() => joinGroup(selectedGroup._id || selectedGroup.id)}
                   >
                     Join
@@ -361,53 +378,72 @@ export default function CommunityPage() {
               </div>
             </div>
 
-            <div
-              className="messages-container"
-              style={{ maxHeight: messagesMaxHeight, minHeight: 200 }}
-            >
-              {messages.length === 0 ? (
-                <div style={{ padding: 16, color: '#777' }}>No messages yet.</div>
-              ) : (
-                messages.map((m) => {
-                  const mid = m._id || m.id;
-                  const own = String(m.senderId) === String(currentUserId);
-                  return (
-                    <div key={mid} className={`message-item ${own ? 'own' : ''}`}>
-                      <div className="msg-bubble">
-                        <div className="msg-sender">{m.senderNickname || m.senderId}</div>
-                        <div className="msg-text">{m.message || m.text}</div>
-                        <div className="edited">
-                          {m.isEdited ? 'edited' : ''}
-                          <span style={{ fontSize: 11, color: '#999', marginLeft: 6 }}>
-                            {new Date(m.createdAt || m.date || m.createdAt || Date.now()).toLocaleString()}
-                          </span>
+            {isMember ? (
+              <>
+                <div
+                  className="messages-container"
+                  style={{ maxHeight: messagesMaxHeight, minHeight: 200 }}
+                >
+                  {messages.length === 0 ? (
+                    <div style={{ padding: 16, color: '#777' }}>No messages yet.</div>
+                  ) : (
+                    messages.map((m) => {
+                      const mid = m._id || m.id;
+                      const own = String(m.senderId) === String(currentUserId);
+                      return (
+                        <div key={mid} className={`message-item ${own ? 'own' : ''}`}>
+                          <div className="msg-bubble">
+                            <div className="msg-sender">{m.senderNickname || m.senderId}</div>
+                            <div className="msg-text">{m.message || m.text}</div>
+                            <div className="edited">
+                              {m.isEdited ? 'edited' : ''}
+                              <span style={{ fontSize: 11, color: '#999', marginLeft: 6 }}>
+                                {new Date(m.createdAt || m.date || Date.now()).toLocaleString()}
+                              </span>
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    </div>
-                  );
-                })
-              )}
+                      );
+                    })
+                  )}
 
-              <div ref={messagesEndRef} />
-            </div>
+                  <div ref={messagesEndRef} />
+                </div>
 
-            <div className="msg-input-area" ref={inputAreaRef}>
-              <div className="nickname-display">You are: <strong>{nickname}</strong></div>
-              <form onSubmit={sendMessage}>
-                <textarea
-                  ref={msgInputRef}
-                  className="msg-input"
-                  value={msgInput}
-                  onChange={(e) => setMsgInput(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder={isMember ? 'Write a message (press Ctrl+Enter to send)' : 'Join the group to send messages.'}
-                  disabled={!isMember || loading}
-                />
-                <button className="msg-send" type="submit" disabled={loading || !isMember} aria-label="Send message">
-                  {loading ? '...' : '➤'}
-                </button>
-              </form>
-            </div>
+                <div className="msg-input-area" ref={inputAreaRef}>
+                  <div className="nickname-display">You are: <strong>{nickname}</strong></div>
+                  <form onSubmit={sendMessage}>
+                    <textarea
+                      ref={msgInputRef}
+                      className="msg-input"
+                      value={msgInput}
+                      onChange={(e) => setMsgInput(e.target.value)}
+                      onKeyDown={handleKeyDown}
+                      placeholder={isMember ? 'Write a message (press Ctrl+Enter to send)' : 'Join the group to send messages.'}
+                      disabled={!isMember || loading}
+                    />
+                    <button className="msg-send" type="submit" disabled={loading || !isMember} aria-label="Send message">
+                      {loading ? '...' : '➤'}
+                    </button>
+                  </form>
+                </div>
+              </>
+            ) : (
+              <div style={{ padding: 20 }}>
+                <p style={{ margin: 0, color: '#555' }}>
+                  You are not a member of this group. Join the group to view the chat and participate.
+                </p>
+                <div style={{ marginTop: 12 }}>
+                  <button
+                    className="join-btn"
+                    style={{ color: '#000', background: 'transparent', border: '1px solid #333' }}
+                    onClick={() => joinGroup(selectedGroup._id || selectedGroup.id)}
+                  >
+                    Join
+                  </button>
+                </div>
+              </div>
+            )}
           </>
         )}
       </main>
