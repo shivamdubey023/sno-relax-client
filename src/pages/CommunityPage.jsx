@@ -8,6 +8,7 @@ export default function CommunityPage() {
   // ---- User identity handling (safe + consistent) ----
   const storedUserId =
     localStorage.getItem("userId") ||
+    localStorage.getItem("sno_userId") ||
     localStorage.getItem("sno_user_id") ||
     null;
 
@@ -225,6 +226,20 @@ export default function CommunityPage() {
     setLoading(true);
 
     try {
+      // Prefer socket when available to get real-time broadcast via server socket
+      if (socketRef.current && socketRef.current.connected) {
+        socketRef.current.emit("sendGroupMessage", {
+          groupId: selectedGroup._id || selectedGroup.id,
+          senderId: uid,
+          senderNickname: nickname,
+          message: msgInput,
+        });
+        // optimistic clear; server will broadcast message back
+        setMsgInput("");
+        return;
+      }
+
+      // Fallback to HTTP POST if sockets unavailable
       const res = await fetch(
         API_ENDPOINTS.COMMUNITY.POST_GROUP_MESSAGE(selectedGroup._id),
         {
@@ -240,7 +255,7 @@ export default function CommunityPage() {
       );
       if (res.ok) {
         setMsgInput("");
-        loadMessages();
+        await loadMessages();
       } else {
         alert("Failed to send message");
       }
@@ -256,8 +271,186 @@ export default function CommunityPage() {
   // ---- JSX ----
   return (
     <div className="community-page">
-      {/* JSX intentionally unchanged for safety */}
-      {/* Your existing JSX here is GOOD and kept as-is */}
+      {/* Sidebar: Groups */}
+      <aside className="community-sidebar">
+        <div className="sidebar-header">
+          <h2>Communities</h2>
+          <button
+            className="create-btn"
+            title="Create group"
+            onClick={() => setShowCreateModal(true)}
+          >
+            +
+          </button>
+        </div>
+
+        <div className="groups-list">
+          {groups.length === 0 ? (
+            <div style={{ padding: 16, color: '#777' }}>No groups found.</div>
+          ) : (
+            groups.map((g) => {
+              const gid = g._id || g.id;
+              const active = selectedGroup && (String(selectedGroup._id || selectedGroup.id) === String(gid));
+              return (
+                <div
+                  key={gid}
+                  className={`group-item ${active ? 'active' : ''}`}
+                  onClick={() => setSelectedGroup(g)}
+                >
+                  <div className="group-info">
+                    <h4>{g.name}</h4>
+                    <p>{g.description || `${g.memberCount || (g.members && g.members.length) || 0} members`}</p>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+      </aside>
+
+      {/* Main Chat Area */}
+      <main className="community-main">
+        {!selectedGroup ? (
+          <div className="no-selection">
+            <div>
+              <h3>Select a group to join the conversation</h3>
+              <p>Join a group or create a new one to start talking with others.</p>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="chat-header-comm">
+              <div className="header-info">
+                <h3>{selectedGroup.name}</h3>
+                <p>{selectedGroup.description || ''}</p>
+              </div>
+
+              <div className="header-actions">
+                {isMember ? (
+                  <button
+                    className="leave-btn"
+                    onClick={() => leaveGroup(selectedGroup._id || selectedGroup.id)}
+                  >
+                    Leave
+                  </button>
+                ) : (
+                  <button
+                    className="create-btn"
+                    onClick={() => joinGroup(selectedGroup._id || selectedGroup.id)}
+                  >
+                    Join
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <div
+              className="messages-container"
+              style={{ maxHeight: messagesMaxHeight, minHeight: 200 }}
+            >
+              {messages.length === 0 ? (
+                <div style={{ padding: 16, color: '#777' }}>No messages yet.</div>
+              ) : (
+                messages.map((m) => {
+                  const mid = m._id || m.id;
+                  const own = String(m.senderId) === String(currentUserId);
+                  return (
+                    <div key={mid} className={`message-item ${own ? 'own' : ''}`}>
+                      <div className="msg-bubble">
+                        <div className="msg-sender">{m.senderNickname || m.senderId}</div>
+                        <div className="msg-text">{m.message || m.text}</div>
+                        <div className="edited">
+                          {m.isEdited ? 'edited' : ''}
+                          <span style={{ fontSize: 11, color: '#999', marginLeft: 6 }}>
+                            {new Date(m.createdAt || m.date || m.createdAt || Date.now()).toLocaleString()}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+
+              <div ref={messagesEndRef} />
+            </div>
+
+            <div className="msg-input-area" ref={inputAreaRef}>
+              <div className="nickname-display">You are: <strong>{nickname}</strong></div>
+              <form onSubmit={sendMessage}>
+                <input
+                  className="msg-input"
+                  value={msgInput}
+                  onChange={(e) => setMsgInput(e.target.value)}
+                  placeholder={isMember ? 'Write a message...' : 'Join the group to send messages.'}
+                  disabled={!isMember || loading}
+                />
+                <button className="msg-send" type="submit" disabled={loading || !isMember}>
+                  {loading ? '...' : '➤'}
+                </button>
+              </form>
+            </div>
+          </>
+        )}
+      </main>
+
+      {/* Create Group Modal */}
+      {showCreateModal && (
+        <div className="modal-overlay" onClick={() => setShowCreateModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h3>Create Group</h3>
+            <input value={groupName} onChange={(e) => setGroupName(e.target.value)} placeholder="Group name" />
+            <textarea value={groupDesc} onChange={(e) => setGroupDesc(e.target.value)} placeholder="Description" />
+            <label style={{ display: 'block', marginBottom: 12 }}>
+              <input type="checkbox" checked={groupIsPrivate} onChange={(e) => setGroupIsPrivate(e.target.checked)} /> Private
+            </label>
+            <div className="modal-buttons">
+              <button type="button" onClick={() => setShowCreateModal(false)}>Cancel</button>
+              <button
+                type="button"
+                onClick={async () => {
+                  const createdBy = ensureUserId();
+                  try {
+                    const res = await fetch(API_ENDPOINTS.COMMUNITY.CREATE_GROUP, {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      credentials: 'include',
+                      body: JSON.stringify({ name: groupName, description: groupDesc, createdBy, isPrivate: groupIsPrivate }),
+                    });
+                    if (res.ok) {
+                      const g = await res.json();
+                      setShowCreateModal(false);
+                      setGroupName('');
+                      setGroupDesc('');
+                      const updated = await loadGroups();
+                      const newGroup = (Array.isArray(updated) ? updated : []).find((x) => (x._id || x.id) === (g._id || g.id));
+                      if (newGroup) setSelectedGroup(newGroup);
+                    } else {
+                      const err = await res.json();
+                      alert(err.error || 'Failed to create group');
+                    }
+                  } catch (e) {
+                    alert('Failed to create group');
+                  }
+                }}
+              >
+                Create
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Violation Popup */}
+      {showViolationPopup && (
+        <div className="violation-modal" onClick={() => { setShowViolationPopup(false); localStorage.setItem('communityPolicyAccepted','1'); }}>
+          <div className="violation-content" onClick={(e) => e.stopPropagation()}>
+            <h2>Community Guidelines</h2>
+            <p>Please be kind and follow the community rules before posting.</p>
+            <button onClick={() => { setShowViolationPopup(false); localStorage.setItem('communityPolicyAccepted','1'); }}>I Agree</button>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
