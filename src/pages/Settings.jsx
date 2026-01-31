@@ -20,7 +20,7 @@ export default function Settings() {
   const themes = (availableThemes || []).map((t) => ({
     id: t.id,
     name: t.name || t.id,
-    icon: t.id === "dark" ? Moon : Sun,
+    icon: t.id === "dark" ? Moon : (t.id === 'brand' ? Palette : Sun),
     color: t.hex || "#f1f5f9",
   }));
 
@@ -135,7 +135,7 @@ export default function Settings() {
 
           <p className="about-text">
             <strong>Current Theme:</strong>{" "}
-            {theme === "dark" ? "Dark Mode" : "Light Mode"}
+            {theme === "dark" ? "Dark Mode" : theme === 'brand' ? 'Brand (Default)' : 'Light Mode'}
           </p>
         </div>
       </div>

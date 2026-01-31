@@ -156,7 +156,7 @@ export default function RockPaperScissors() {
   if (showRoundSelect) {
     return (
       <div className="game-card">
-        <h3 style={{ color: "#000" }}>Rock · Paper · Scissors</h3>
+        <h3 className="game-title">Rock · Paper · Scissors</h3>
         <div style={{ textAlign: "center", padding: "20px" }}>
           <p style={{ marginBottom: "30px", fontSize: "16px", fontWeight: "500" }}>
             How many rounds would you like to play?
@@ -194,7 +194,7 @@ export default function RockPaperScissors() {
   if (gameSeriesComplete) {
     return (
       <div className="game-card">
-        <h3 style={{ color: "#000" }}>Rock · Paper · Scissors</h3>
+        <h3 className="game-title">Rock · Paper · Scissors</h3>
 
         <div style={{ textAlign: "center", padding: "30px 20px" }}>
           <h4 style={{ marginBottom: "20px" }}>🏆 Series Complete!</h4>
@@ -223,7 +223,7 @@ export default function RockPaperScissors() {
   // Active round UI
   return (
     <div className="game-card">
-      <h3 style={{ color: "#000" }}>Rock · Paper · Scissors</h3>
+      <h3 className="game-title">Rock · Paper · Scissors</h3>
 
       <div
         style={{

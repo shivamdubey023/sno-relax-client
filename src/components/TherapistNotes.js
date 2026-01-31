@@ -409,7 +409,7 @@ export default function TherapistNotes() {
                       <button
                         className="retry-btn"
                         onClick={() => retrySend(m)}
-                        style={{ marginLeft: 8, background: 'transparent', border: '1px solid #e74c3c', color: '#e74c3c', borderRadius: 6, padding: '2px 6px', cursor: 'pointer' }}
+                        title="Retry send"
                       >
                         Retry
                       </button>

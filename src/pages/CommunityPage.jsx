@@ -372,7 +372,6 @@ export default function CommunityPage() {
                 {isMember ? (
                   <button
                     className="leave-btn"
-                    style={{ background: '#e74c3c' }}
                     onClick={() => leaveGroup(selectedGroup._id || selectedGroup.id)}
                   >
                     Leave
@@ -380,7 +379,6 @@ export default function CommunityPage() {
                 ) : (
                   <button
                     className="join-btn"
-                    style={{ color: '#000', background: 'transparent', border: '1px solid #333' }}
                     onClick={() => joinGroup(selectedGroup._id || selectedGroup.id)}
                   >
                     Join

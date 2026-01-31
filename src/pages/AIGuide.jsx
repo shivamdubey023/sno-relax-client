@@ -317,7 +317,7 @@ export default function AIGuide() {
 
               <div style={{ marginTop: 12, display: 'flex', gap: 8 }}>
                 <button onClick={() => setCountdown(0)} style={{ padding: '8px 16px' }}>Next</button>
-                <button onClick={stopRoutine} style={{ padding: '8px 16px', background: '#e74c3c', color: 'white' }}>Stop</button>
+                <button onClick={stopRoutine} className="btn-danger">Stop</button>
               </div>
 
               <div style={{ marginTop: 12 }}>

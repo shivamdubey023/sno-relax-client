@@ -33,7 +33,7 @@ import "../styles/ThemeSwitcher.css";
  *  - Persist theme preference to backend
  */
 export default function ThemeSwitcher() {
-  const { theme, setTheme, themes } = useTheme();
+  const { theme, setTheme, setSpecificTheme, themes } = useTheme();
 
   // Guard: if themes are not loaded yet
   if (!Array.isArray(themes) || themes.length === 0) {
@@ -54,7 +54,7 @@ export default function ThemeSwitcher() {
             <button
               key={t.id}
               className={`theme-btn ${isActive ? "active" : ""}`}
-              onClick={() => setTheme(t.id)}
+              onClick={() => setSpecificTheme ? setSpecificTheme(t.id) : setTheme(t.id)}
               title={t.name}
               aria-pressed={isActive}
               style={{

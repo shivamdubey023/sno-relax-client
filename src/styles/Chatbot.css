@@ -260,3 +260,13 @@
   .message-bubble{max-width:85%;}
   .chat-title{font-size:18px;}
 }
+
+/* Utility buttons */
+.btn-danger { padding: 8px 12px; background: var(--danger); color: white; border-radius: 8px; border: none; cursor: pointer; }
+
+.retry-btn { margin-left: 8px; background: transparent; border: 1px solid var(--danger); color: var(--danger); border-radius: 6px; padding: 4px 8px; cursor: pointer; font-size: 12px; }
+.retry-btn:hover { background: rgba(231,76,60,0.06); }
+
+/* Make sure placeholders and inputs follow tokens */
+.chat-input::placeholder { color: var(--placeholder); }
+
