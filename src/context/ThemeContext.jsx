@@ -59,18 +59,21 @@ export const ThemeProvider = ({ children }) => {
     if (theme === "light") {
       document.documentElement.style.setProperty("--app-foreground", "#0f172a");
       document.documentElement.style.setProperty("--app-background", "#ffffff");
-      // Chat area in light theme: light paper with dark text
-      document.documentElement.style.setProperty("--chat-bg", "#f7f9fc");
-      document.documentElement.style.setProperty("--chat-text", "#0b1220");
-      document.documentElement.style.setProperty("--bot-bubble-bg", "#ffffff");
+      // Chat area in light theme: white chat surface, dark text
+      document.documentElement.style.setProperty("--chat-bg", "#FFFFFF");
+      document.documentElement.style.setProperty("--chat-text", "#000000");
+      document.documentElement.style.setProperty("--bot-bubble-bg", "#FFFFFF");
       document.documentElement.style.setProperty("--bot-text", "#111827");
       document.documentElement.style.setProperty("--user-bubble-bg", baseHex);
-      document.documentElement.style.setProperty("--user-text", "#ffffff");
+      // User message text should be black in light theme for strong contrast
+      document.documentElement.style.setProperty("--user-text", "#000000");
 
-      // Input area for light theme remains white with dark placeholder
+      // Input area for light theme remains white with neutral grey placeholder
       document.documentElement.style.setProperty("--chat-input-bg", "#ffffff");
       document.documentElement.style.setProperty("--chat-input-text", "#000000");
-      document.documentElement.style.setProperty("--chat-input-placeholder", "rgba(0,0,0,0.45)");
+      document.documentElement.style.setProperty("--chat-input-placeholder", "#9CA3AF");
+      // Chat title color in light theme must be black
+      document.documentElement.style.setProperty("--chat-title-color", "#000000");
 
       // Therapist-specific variables fall back to defaults for light theme
       document.documentElement.style.setProperty("--therapist-chat-bg", "#ffffff");
@@ -78,18 +81,21 @@ export const ThemeProvider = ({ children }) => {
     } else {
       document.documentElement.style.setProperty("--app-foreground", "#ffffff");
       document.documentElement.style.setProperty("--app-background", "#0b1220");
-      // Dark theme: darker chat surface, light text, translucent bubbles
-      document.documentElement.style.setProperty("--chat-bg", "#0b1220");
-      document.documentElement.style.setProperty("--chat-text", "#e6eef8");
+      // Dark theme: pure black chat surface, light text, translucent bubbles
+      document.documentElement.style.setProperty("--chat-bg", "#000000");
+      document.documentElement.style.setProperty("--chat-text", "#FFFFFF");
       document.documentElement.style.setProperty("--bot-bubble-bg", "rgba(255,255,255,0.03)");
-      document.documentElement.style.setProperty("--bot-text", "#e6eef8");
+      document.documentElement.style.setProperty("--bot-text", "#FFFFFF");
       document.documentElement.style.setProperty("--user-bubble-bg", baseHex);
       document.documentElement.style.setProperty("--user-text", "#ffffff");
 
       // Input area for dark theme should be dark with white text and whitish placeholder
-      document.documentElement.style.setProperty("--chat-input-bg", "#0f1724");
+      document.documentElement.style.setProperty("--chat-input-bg", "#0b1220");
       document.documentElement.style.setProperty("--chat-input-text", "#ffffff");
-      document.documentElement.style.setProperty("--chat-input-placeholder", "rgba(255,255,255,0.65)");
+      // Placeholder uses neutral grey for readability in both themes
+      document.documentElement.style.setProperty("--chat-input-placeholder", "#9CA3AF");
+      // Chat title color in dark theme must be white
+      document.documentElement.style.setProperty("--chat-title-color", "#FFFFFF");
       // Defaults for non-light themes (dark). If user chooses the `therapist`
       // theme we override below to ensure therapist page colors are applied.
       document.documentElement.style.setProperty("--therapist-chat-bg", "#0b1220");
