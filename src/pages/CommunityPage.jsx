@@ -325,7 +325,7 @@ export default function CommunityPage() {
 
         <div className="groups-list">
           {groups.length === 0 ? (
-            <div style={{ padding: 16, color: '#777' }}>No groups found.</div>
+            <div className="muted-text" style={{ padding: 16 }}>No groups found.</div>
           ) : (
             groups.map((g) => {
               const gid = g._id || g.id;
@@ -360,11 +360,8 @@ export default function CommunityPage() {
           <>
             <div className="chat-header-comm">
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <button onClick={() => navigate('/dashboard')} style={{ border: 'none', background: 'transparent', cursor: 'pointer' }} aria-label="Back to Dashboard">← Back</button>
+                <button onClick={() => navigate('/dashboard')} className="back-btn" aria-label="Back to Dashboard">← Back</button>
                 <div className="header-info">
-                  <button className="hamburger small" onClick={() => setMenuOpen(true)} aria-label="Open groups">☰</button>
-                  <h3>{selectedGroup.name}</h3>
-                  <p>{selectedGroup.description || ''}</p>
                 </div>
               </div>
 
@@ -406,7 +403,7 @@ export default function CommunityPage() {
                             <div className="msg-text">{m.message || m.text}</div>
                             <div className="edited">
                               {m.isEdited ? 'edited' : ''}
-                              <span style={{ fontSize: 11, color: '#999', marginLeft: 6 }}>
+                              <span className="msg-timestamp">
                                 {new Date(m.createdAt || m.date || Date.now()).toLocaleString()}
                               </span>
                             </div>
@@ -438,14 +435,13 @@ export default function CommunityPage() {
                 </div>
               </>
             ) : (
-              <div style={{ padding: 20 }}>
-                <p style={{ margin: 0, color: '#555' }}>
+                <div className="muted-text" style={{ padding: 20 }}>
+                <p style={{ margin: 0 }}>
                   You are not a member of this group. Join the group to view the chat and participate.
                 </p>
                 <div style={{ marginTop: 12 }}>
                   <button
                     className="join-btn"
-                    style={{ color: '#000', background: 'transparent', border: '1px solid #333' }}
                     onClick={() => joinGroup(selectedGroup._id || selectedGroup.id)}
                   >
                     Join

@@ -45,7 +45,9 @@ export const ThemeProvider = ({ children }) => {
       document.documentElement.style.setProperty("--app-background", tokens["--bg-primary"]);
       document.documentElement.style.setProperty("--app-foreground", tokens["--text-primary"]);
       document.documentElement.style.setProperty("--chat-bg", tokens["--bg-secondary"]);
+      document.documentElement.style.setProperty("--chat-paper-bg", tokens["--bg-secondary"]);
       document.documentElement.style.setProperty("--chat-text", tokens["--text-primary"]);
+      document.documentElement.style.setProperty("--muted-text", tokens["--text-secondary"]);
       document.documentElement.style.setProperty("--chat-input-bg", tokens["--input-bg"]);
       document.documentElement.style.setProperty("--chat-input-text", tokens["--input-text"]);
       document.documentElement.style.setProperty("--chat-input-placeholder", tokens["--placeholder"]);
@@ -54,6 +56,13 @@ export const ThemeProvider = ({ children }) => {
       document.documentElement.style.setProperty("--group-active-bg", tokens["--hover-bg"]);
       document.documentElement.style.setProperty("--chat-title-color", tokens["--text-primary"]);
       document.documentElement.style.setProperty("--danger", "#e74c3c");
+
+      // Helpful UI aliases
+      document.documentElement.style.setProperty("--app-gradient", `linear-gradient(135deg, ${tokens["--accent-primary"]} 0%, ${tokens["--mood-mid"]} 100%)`);
+      document.documentElement.style.setProperty("--app-gradient-soft", `linear-gradient(135deg, ${tokens["--accent-primary"]}10, ${tokens["--mood-mid"]}10)`);
+      document.documentElement.style.setProperty("--msg-bubble-own-bg", `linear-gradient(135deg, ${tokens["--accent-primary"]} 0%, ${tokens["--mood-mid"]} 100%)`);
+      document.documentElement.style.setProperty("--msg-bubble-other-bg", tokens["--bg-primary"]);
+      document.documentElement.style.setProperty("--divider", tokens["--divider"] || "rgba(0,0,0,0.06)");
     };
 
     // Token sets per theme
