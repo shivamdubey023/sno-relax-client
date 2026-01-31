@@ -39,8 +39,25 @@ export default function CommunityPage() {
   // ---- Refs ----
   const messagesEndRef = useRef(null);
   const inputAreaRef = useRef(null);
+  const msgInputRef = useRef(null);
   const socketRef = useRef(null);
   const [messagesMaxHeight, setMessagesMaxHeight] = useState("auto");
+
+  // Auto-resize textarea for a comfortable typing area
+  useEffect(() => {
+    if (msgInputRef.current) {
+      msgInputRef.current.style.height = "auto";
+      msgInputRef.current.style.height = Math.min(msgInputRef.current.scrollHeight, 300) + "px";
+    }
+  }, [msgInput]);
+
+  // Keyboard shortcut: Ctrl/Cmd + Enter to send message
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      sendMessage(e);
+    }
+  };
 
   // ---- Initial group load ----
   useEffect(() => {
@@ -377,14 +394,16 @@ export default function CommunityPage() {
             <div className="msg-input-area" ref={inputAreaRef}>
               <div className="nickname-display">You are: <strong>{nickname}</strong></div>
               <form onSubmit={sendMessage}>
-                <input
+                <textarea
+                  ref={msgInputRef}
                   className="msg-input"
                   value={msgInput}
                   onChange={(e) => setMsgInput(e.target.value)}
-                  placeholder={isMember ? 'Write a message...' : 'Join the group to send messages.'}
+                  onKeyDown={handleKeyDown}
+                  placeholder={isMember ? 'Write a message (press Ctrl+Enter to send)' : 'Join the group to send messages.'}
                   disabled={!isMember || loading}
                 />
-                <button className="msg-send" type="submit" disabled={loading || !isMember}>
+                <button className="msg-send" type="submit" disabled={loading || !isMember} aria-label="Send message">
                   {loading ? '...' : '➤'}
                 </button>
               </form>

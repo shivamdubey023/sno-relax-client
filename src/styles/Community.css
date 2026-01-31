@@ -325,45 +325,47 @@
 
 .msg-input {
   flex: 1;
-  padding: 10px 14px;
-  padding-right: 64px; /* space for the floating send button */
+  padding: 12px 16px;
+  min-height: 56px;
+  max-height: 200px;
   border: 1px solid #ddd;
-  border-radius: 20px;
+  border-radius: 12px;
   font-size: 14px;
   outline: none;
-  transition: all 0.3s ease;
+  resize: none;
   font-family: inherit;
+  transition: box-shadow 0.2s ease;
 }
 
 .msg-input:focus {
   border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.08);
 }
 
 .msg-send {
-  position: absolute; /* float on top of input, right side */
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
+  margin-left: 8px;
   padding: 0;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   border: none;
-  border-radius: 50%;
-  cursor: pointer;
-  font-size: 16px;
-  width: 44px;
-  height: 44px;
+  border-radius: 12px;
+  width: 56px;
+  height: 56px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+  cursor: pointer;
+  transition: transform 0.12s ease;
+  flex-shrink: 0;
 }
 
 .msg-send:hover:not(:disabled) {
-  transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  transform: scale(1.03);
+}
+
+.msg-send:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* Use chatbot-like input controls inside the community message area */
