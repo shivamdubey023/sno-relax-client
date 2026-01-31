@@ -281,7 +281,7 @@ export default function Chatbot() {
             value={inp}
             onChange={(e) => setInp(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && send()}
-            placeholder="Type a message..."
+            placeholder="type message"
             aria-label="Message input"
           />
 

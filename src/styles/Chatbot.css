@@ -156,7 +156,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background: white;
+  background: var(--chat-input-bg);
   padding: 6px;
   border-radius: 28px;
   width: calc(100% - 32px);
@@ -173,9 +173,11 @@
   padding: 10px 12px;
   font-size: 14px;
   background: transparent;
-  color: var(--input-text,#000);
+  color: var(--chat-input-text);
   min-width: 0; /* for flex shrink on small screens */
 }
+
+.chat-input::placeholder { color: var(--chat-input-placeholder); }
 
 /* Voice Button */
 .voice-btn {
@@ -183,8 +185,8 @@
   height: 40px;
   border-radius: 50%;
   border: none;
-  background: #fff;
-  color: var(--app-primary);
+  background: transparent;
+  color: var(--chat-input-text);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -198,9 +200,9 @@
   border-radius: 50%;
   border: none;
   background: transparent;
-  color: var(--app-primary);
+  color: var(--chat-input-text);
   cursor: pointer;
-}
+} 
 
 @media (max-width:600px){
   .input-controls{ gap:6px; padding:6px; width: calc(100% - 20px); border-radius: 20px; }
@@ -209,53 +211,20 @@
   .chat-input-area { padding:10px; }
 }
 
-/* Input */
-.chat-input {
-  flex: 1;
-  border: none;
-  outline: none;
-  padding: 10px 12px;
-  font-size: 14px;
-  background: transparent;
-  color: var(--input-text,#000);
-}
+/* Input - fallback for duplicates */
+.chat-input { flex:1; border:none; outline:none; padding:10px 12px; font-size:14px; background:transparent; color:var(--chat-input-text); }
 
 /* Voice Button */
-.voice-btn {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  border: none;
-  background: #fff;
-  color: var(--app-primary);
-  cursor: pointer;
-}
+.voice-btn { width:38px; height:38px; border-radius:50%; border:none; background:transparent; color:var(--chat-input-text); cursor:pointer; }
 
-.voice-btn.active {
-  background: var(--app-primary);
-  color: white;
-  animation: pulse 1s infinite;
-}
+.voice-btn.active { background: var(--app-primary); color: white; animation: pulse 1s infinite; }
 
-@keyframes pulse {
-  0%{box-shadow:0 0 0 3px rgba(102,126,234,.3);}
-  100%{box-shadow:0 0 0 8px rgba(102,126,234,0);}
-}
+@keyframes pulse { 0%{box-shadow:0 0 0 3px rgba(102,126,234,.3);} 100%{box-shadow:0 0 0 8px rgba(102,126,234,0);} }
 
 /* Send Button */
-.send-btn {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  border: none;
-  background: transparent;
-  color: var(--app-primary);
-  cursor: pointer;
-}
+.send-btn { width:38px; height:38px; border-radius:50%; border:none; background:transparent; color:var(--chat-input-text); cursor:pointer; }
 
-.send-btn:disabled {
-  opacity: .4;
-  cursor: not-allowed;
+.send-btn:disabled { opacity: .4; cursor: not-allowed; }
 }
 
 /* ============================

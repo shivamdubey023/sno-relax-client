@@ -42,9 +42,10 @@ export const ThemeProvider = ({ children }) => {
     document.documentElement.style.setProperty("--app-gradient", theme === "light" ? `linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%)` : `linear-gradient(135deg, ${baseHex} 0%, ${baseHex}66 100%)`);
 
 // Defaults for chat variables. We'll set per-theme values below.
-    // Input area should always be white with black text per UX requirement.
+    // Input area defaults (will be overridden by theme-specific settings)
     document.documentElement.style.setProperty("--chat-input-bg", "#ffffff");
     document.documentElement.style.setProperty("--chat-input-text", "#000000");
+    document.documentElement.style.setProperty("--chat-input-placeholder", "rgba(0,0,0,0.45)");
 
     // Set defaults that will be overridden by theme-specific values
     document.documentElement.style.setProperty("--chat-bg", "#ffffff");
@@ -66,6 +67,11 @@ export const ThemeProvider = ({ children }) => {
       document.documentElement.style.setProperty("--user-bubble-bg", baseHex);
       document.documentElement.style.setProperty("--user-text", "#ffffff");
 
+      // Input area for light theme remains white with dark placeholder
+      document.documentElement.style.setProperty("--chat-input-bg", "#ffffff");
+      document.documentElement.style.setProperty("--chat-input-text", "#000000");
+      document.documentElement.style.setProperty("--chat-input-placeholder", "rgba(0,0,0,0.45)");
+
       // Therapist-specific variables fall back to defaults for light theme
       document.documentElement.style.setProperty("--therapist-chat-bg", "#ffffff");
       document.documentElement.style.setProperty("--therapist-text", "#000000");
@@ -80,6 +86,10 @@ export const ThemeProvider = ({ children }) => {
       document.documentElement.style.setProperty("--user-bubble-bg", baseHex);
       document.documentElement.style.setProperty("--user-text", "#ffffff");
 
+      // Input area for dark theme should be dark with white text and whitish placeholder
+      document.documentElement.style.setProperty("--chat-input-bg", "#0f1724");
+      document.documentElement.style.setProperty("--chat-input-text", "#ffffff");
+      document.documentElement.style.setProperty("--chat-input-placeholder", "rgba(255,255,255,0.65)");
       // Defaults for non-light themes (dark). If user chooses the `therapist`
       // theme we override below to ensure therapist page colors are applied.
       document.documentElement.style.setProperty("--therapist-chat-bg", "#0b1220");
