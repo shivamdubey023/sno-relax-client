@@ -4,6 +4,7 @@ import { API_ENDPOINTS, SOCKET_URL } from "../config/api.config";
 // NOTE: API_ENDPOINTS intentionally kept for future REST fallback
 
 import "../styles/Chatbot.css";
+import "../styles/ChatStyles.css";
 
 /**
  * Chatbot Component (SnoBot)
@@ -285,69 +286,97 @@ export default function Chatbot() {
 
   /* ---------------- UI ---------------- */
   return (
-    <div className="chatbot-container">
+    <div className="chatbot-container chat-container">
       <div className="chat-header">
-        <div className="header-top">
-          <div className="header-left" />
-
-          <div className="header-center">
-            <h3 className="chat-title">🤖 SnoBot</h3>
-          </div>
-
-          <div className="header-right">
-            <select value={lang} onChange={(e) => setLang(e.target.value)}>
-              <option value="en">EN</option>
-              <option value="hi">HI</option>
-              <option value="es">ES</option>
-              <option value="fr">FR</option>
-            </select>
-
-            <button onClick={handleHelp} aria-label="Help">❓</button>
-          </div>
+        <div className="chat-header-info">
+          <h3 className="chat-header-title">🤖 SnoBot</h3>
+          <p className="chat-header-subtitle">AI Assistant</p>
+        </div>
+        <div className="chat-header-actions">
+          <select 
+            className="lang-select" 
+            value={lang} 
+            onChange={(e) => setLang(e.target.value)}
+            aria-label="Select language"
+          >
+            <option value="en">EN</option>
+            <option value="hi">HI</option>
+            <option value="es">ES</option>
+            <option value="fr">FR</option>
+          </select>
+          <button className="chat-header-btn" onClick={handleHelp} aria-label="Help">❓</button>
         </div>
       </div>
 
       <div className="chat-messages">
         {msgs.map((m, i) => (
-          <div key={i} className={`message-row ${m.t}`}>
-            <div className={`message-bubble ${m.t}`}>{m.txt}</div>
+          <div 
+            key={m.id || i} 
+            className={`message-row ${m.t === "user" ? "sent" : "received"}`}
+          >
+            <div className={`message-bubble ${m.t === "user" ? "sent" : "received"}`}>
+              <p className="message-text">{m.txt}</p>
+              <div className="message-meta">
+                <span className="message-time">
+                  {new Date(m.ts || Date.now()).toLocaleTimeString([], { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                  })}
+                </span>
+                {m.t === "user" && <span className="message-status">✓</span>}
+              </div>
+            </div>
           </div>
         ))}
-        {load && <div className="typing">Typing...</div>}
+        {load && (
+          <div className="message-row received">
+            <div className="typing-indicator">
+              <span className="typing-dot"></span>
+              <span className="typing-dot"></span>
+              <span className="typing-dot"></span>
+            </div>
+          </div>
+        )}
         <div ref={scrollRef} />
       </div>
 
       <div className="chat-input-area">
-        <div className="input-controls">
-          <button
-            className={`voice-btn ${listening ? "active" : ""}`}
-            onClick={handleVoice}
-            disabled={load}
-            aria-label="Voice input"
-            title="Voice input"
-          >
-            🎤
-          </button>
+        <button
+          className={`chat-action-btn ${listening ? "recording" : ""}`}
+          onClick={handleVoice}
+          disabled={load}
+          aria-label="Voice input"
+          title={listening ? "Recording..." : "Voice input"}
+        >
+          {listening ? "🔴" : "🎤"}
+        </button>
 
-          <input
+        <div className="chat-input-wrapper">
+          <textarea
             className="chat-input"
             value={inp}
             onChange={(e) => setInp(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && send()}
-            placeholder="type message"
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                send();
+              }
+            }}
+            placeholder="Type a message..."
             aria-label="Message input"
+            rows={1}
           />
-
-          <button
-            className="send-btn"
-            onClick={() => send()}
-            disabled={load}
-            aria-label="Send message"
-            title="Send"
-          >
-            ➤
-          </button>
         </div>
+
+        <button
+          className="chat-action-btn send"
+          onClick={() => send()}
+          disabled={load || !inp.trim()}
+          aria-label="Send message"
+          title="Send"
+        >
+          📤
+        </button>
       </div>
     </div>
   );

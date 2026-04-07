@@ -2,12 +2,6 @@
    MODAL OVERLAY (Background Layer)
    ================================ */
 
-/*
- * Covers the entire screen
- * - Dark gradient overlay for focus
- * - Backdrop blur for modern UI feel
- * - High z-index to stay above all content
- */
 .modal-overlay {
 	position: fixed;
 	inset: 0;
@@ -27,16 +21,9 @@
    MODAL CARD (Main Container)
    ================================ */
 
-/*
- * Core modal container
- * - Uses CSS variables for theme support
- * - Responsive width limits
- * - Drop shadow for depth
- * - Entry animation for smooth appearance
- */
 .modal-card {
 	background: var(--card-bg, #fff);
-	color: var(--app-foreground, #000);
+	color: var(--text-primary, #000);
 	padding: 18px;
 	border-radius: 12px;
 	min-width: 320px;
@@ -44,6 +31,7 @@
 	box-shadow: 0 14px 40px rgba(2, 6, 23, 0.45);
 	position: relative;
 	animation: modalFade 0.18s ease-out;
+	border: 1px solid var(--border-color);
 }
 
 
@@ -51,38 +39,32 @@
    MODAL HEADER
    ================================ */
 
-/*
- * Header section for title and close button
- * - Flex layout for spacing
- * - Bottom border for separation
- */
 .startup-modal .modal-header {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
 	padding-bottom: 8px;
-	border-bottom: 1px solid rgba(11, 30, 61, 0.06);
+	border-bottom: 1px solid var(--border-color);
 }
 
-/* Modal title styling */
 .modal-title {
 	font-weight: 700;
-	font-size: 2.1rem;
-	color: var(--app-accent, #0b1e3d);
+	font-size: 1.2rem;
+	color: var(--text-primary);
 }
 
-/* Close (X) button */
 .modal-close {
 	background: transparent;
-	border: none;
-	font-size: 18px;
+	border: 1px solid var(--border-color);
+	font-size: 16px;
 	cursor: pointer;
-	padding: 6px;
+	padding: 6px 10px;
 	border-radius: 6px;
+	color: var(--text-primary);
 }
 
 .modal-close:hover {
-	background: rgba(0, 0, 0, 0.06);
+	background: var(--bg-tertiary);
 }
 
 
@@ -90,36 +72,51 @@
    MODAL BODY (Scrollable Content)
    ================================ */
 
-/*
- * Main content area
- * - Scrollable for long text (policies, forms)
- * - Max height prevents screen overflow
- */
 .modal-body {
 	padding: 14px 6px;
 	max-height: 56vh;
 	overflow: auto;
-	font-size: 0.9rem;
-	line-height: 1.45;
-	color: rgb(36, 35, 35);
+	font-size: 0.95rem;
+	line-height: 1.5;
+	color: var(--text-primary);
 }
 
+.modal-body h1,
+.modal-body h2,
+.modal-body h3 {
+	color: var(--text-primary);
+	margin-top: 1rem;
+}
+
+.modal-body p {
+	color: var(--text-secondary);
+	margin-bottom: 0.75rem;
+}
+
+.modal-body ul,
+.modal-body ol {
+	color: var(--text-secondary);
+	padding-left: 1.5rem;
+}
+
+.modal-body li {
+	margin-bottom: 0.5rem;
+}
+
+.modal-body a {
+	color: var(--accent-primary);
+}
 
 /* ================================
    MODAL FOOTER (Actions)
    ================================ */
 
-/*
- * Footer for action buttons
- * - Right aligned buttons
- * - Top border separation
- */
 .modal-footer {
 	display: flex;
 	gap: 10px;
 	justify-content: flex-end;
 	padding-top: 12px;
-	border-top: 1px solid rgba(11, 30, 61, 0.04);
+	border-top: 1px solid var(--border-color);
 }
 
 
@@ -127,29 +124,34 @@
    BUTTON STYLES
    ================================ */
 
-/* Base button style */
 .btn {
-	padding: 0.55rem 0.9rem;
+	padding: 0.6rem 1rem;
 	border-radius: 8px;
 	border: none;
 	cursor: pointer;
 	font-weight: 600;
+	font-size: 0.9rem;
+	transition: all 0.2s ease;
 }
 
-/* Primary action button */
 .btn-primary {
-	background: linear-gradient(90deg, var(--accent-primary), rgba(0,0,0,0.06));
-	color: var(--text-primary);
+	background: var(--accent-primary);
+	color: var(--bg-primary);
 }
 
 .btn-primary:hover {
-	opacity: 0.95;
+	opacity: 0.9;
+	transform: translateY(-1px);
 }
 
-/* Secondary / cancel button */
 .btn-secondary {
-	background: var(--bg-secondary);
+	background: var(--bg-tertiary);
 	color: var(--text-primary);
+	border: 1px solid var(--border-color);
+}
+
+.btn-secondary:hover {
+	background: var(--hover-bg);
 }
 
 
@@ -158,10 +160,6 @@
    ANIMATIONS
    ================================ */
 
-/*
- * Smooth fade & slide animation
- * Used when modal appears
- */
 @keyframes modalFade {
 	from {
 		transform: translateY(6px);
@@ -178,23 +176,20 @@
    REUSABLE UPLOAD BUTTON
    ================================ */
 
-/*
- * Shared button style
- * Useful for upload / action buttons inside modals
- */
 .upload-btn {
 	background: var(--accent-primary);
 	border: none;
 	border-radius: 8px;
-	color: var(--text-primary);
+	color: var(--bg-primary);
 	cursor: pointer;
 	font-size: 1rem;
 	font-weight: 600;
 	padding: 0.6rem 0;
-	transition: background 0.2s, color 0.2s;
+	transition: all 0.2s ease;
 	width: 140px;
 }
 
 .upload-btn:hover {
-	background: rgba(0,0,0,0.06);
+	opacity: 0.9;
+	transform: translateY(-1px);
 }

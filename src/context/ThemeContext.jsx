@@ -81,22 +81,27 @@ export const ThemeProvider = ({ children }) => {
         document.documentElement.style.setProperty(k, tokens[k]);
       });
 
+      const accentColorVal = accent?.color || tokens["--accent-primary"];
+
       document.documentElement.style.setProperty("--app-background", tokens["--bg-primary"]);
       document.documentElement.style.setProperty("--app-foreground", tokens["--text-primary"]);
       document.documentElement.style.setProperty("--chat-bg", tokens["--bg-secondary"]);
+      document.documentElement.style.setProperty("--chat-surface", tokens["--bg-secondary"]);
       document.documentElement.style.setProperty("--chat-paper-bg", tokens["--bg-secondary"]);
       document.documentElement.style.setProperty("--chat-text", tokens["--text-primary"]);
+      document.documentElement.style.setProperty("--chat-text-secondary", tokens["--text-secondary"]);
       document.documentElement.style.setProperty("--muted-text", tokens["--text-secondary"]);
       document.documentElement.style.setProperty("--chat-input-bg", tokens["--input-bg"]);
       document.documentElement.style.setProperty("--chat-input-text", tokens["--input-text"]);
       document.documentElement.style.setProperty("--chat-input-placeholder", tokens["--placeholder"]);
+      document.documentElement.style.setProperty("--chat-border", tokens["--border-color"]);
+      document.documentElement.style.setProperty("--chat-accent", accentColorVal);
       document.documentElement.style.setProperty("--group-hover-bg", tokens["--hover-bg"]);
       document.documentElement.style.setProperty("--group-hover-text", tokens["--hover-text"]);
       document.documentElement.style.setProperty("--group-active-bg", tokens["--hover-bg"]);
       document.documentElement.style.setProperty("--chat-title-color", tokens["--text-primary"]);
       document.documentElement.style.setProperty("--danger", "#e74c3c");
 
-      const accentColorVal = accent?.color || tokens["--accent-primary"];
       document.documentElement.style.setProperty("--current-accent", accentColorVal);
       document.documentElement.style.setProperty("--app-gradient", `linear-gradient(135deg, ${accentColorVal} 0%, ${tokens["--mood-mid"]} 100%)`);
       document.documentElement.style.setProperty("--app-gradient-soft", `linear-gradient(135deg, ${accentColorVal}15, ${tokens["--mood-mid"]}15)`);
@@ -104,16 +109,39 @@ export const ThemeProvider = ({ children }) => {
       document.documentElement.style.setProperty("--msg-bubble-other-bg", tokens["--bg-primary"]);
       document.documentElement.style.setProperty("--divider", tokens["--divider"] || "rgba(0,0,0,0.06)");
 
+      // WhatsApp-style message bubbles
+      document.documentElement.style.setProperty("--msg-sent-bg", accentColorVal);
+      document.documentElement.style.setProperty("--msg-sent-text", tokens["--bg-primary"]);
+      document.documentElement.style.setProperty("--msg-received-bg", tokens["--bg-secondary"]);
+      document.documentElement.style.setProperty("--msg-received-text", tokens["--text-primary"]);
+      document.documentElement.style.setProperty("--typing-dot", accentColorVal);
+
       if (bgUrl) {
+        const overlayStrength = theme === "light" ? "0.6" : "0.75";
+        const bgGradient = `linear-gradient(135deg, rgba(0,0,0,${overlayStrength}) 0%, rgba(0,0,0,${parseFloat(overlayStrength) * 0.8}) 100%), url('${bgUrl}')`;
         document.documentElement.style.setProperty("--bg-image-url", `url('${bgUrl}')`);
-        document.documentElement.style.setProperty("--app-background", `linear-gradient(135deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.5) 100%), url('${bgUrl}')`);
-        document.body.style.backgroundImage = `linear-gradient(135deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.5) 100%), url('${bgUrl}')`;
-        document.body.style.backgroundSize = "cover";
-        document.body.style.backgroundPosition = "center";
-        document.body.style.backgroundAttachment = "fixed";
+        document.documentElement.style.setProperty("--bg-image-gradient", bgGradient);
+        document.documentElement.style.setProperty("--app-background", bgGradient);
+        
+        document.body.classList.add("has-background-image");
+        
+        const appContainer = document.querySelector(".app-container") || document.querySelector(".login-container") || document.querySelector(".dashboard-container");
+        if (appContainer) {
+          appContainer.style.backgroundImage = bgGradient;
+          appContainer.style.backgroundSize = "cover";
+          appContainer.style.backgroundPosition = "center";
+          appContainer.style.backgroundAttachment = "fixed";
+          appContainer.style.backgroundRepeat = "no-repeat";
+        }
       } else {
         document.documentElement.style.setProperty("--bg-image-url", "none");
-        document.body.style.backgroundImage = "none";
+        document.documentElement.style.setProperty("--bg-image-gradient", "none");
+        document.body.classList.remove("has-background-image");
+        
+        const appContainer = document.querySelector(".app-container") || document.querySelector(".login-container") || document.querySelector(".dashboard-container");
+        if (appContainer) {
+          appContainer.style.backgroundImage = "none";
+        }
       }
     };
 
@@ -128,7 +156,7 @@ export const ThemeProvider = ({ children }) => {
       "--text-primary": "#FFFFFF",
       "--text-secondary": "#9FB8D0",
       "--text-muted": "#7A9BBF",
-      "--border-color": "rgba(255,255,255,0.1)",
+      "--border-color": "rgba(255,255,255,0.12)",
       "--accent-primary": currentAccent?.color || "#00FF66",
       "--accent-secondary": currentAccent?.color || "#00FF66",
       "--hover-bg": "#0a1f33",
@@ -141,6 +169,8 @@ export const ThemeProvider = ({ children }) => {
       "--mood-mid": "#3b82f6",
       "--mood-low": "#f59e0b",
       "--mood-verylow": "#ef4444",
+      "--card-bg": "rgba(11, 39, 64, 0.85)",
+      "--overlay-bg": "rgba(0, 0, 0, 0.5)",
     };
 
     const darkTokens = {
@@ -150,7 +180,7 @@ export const ThemeProvider = ({ children }) => {
       "--text-primary": "#FFFFFF",
       "--text-secondary": "#CBD5E1",
       "--text-muted": "#94A3B8",
-      "--border-color": "rgba(255,255,255,0.1)",
+      "--border-color": "rgba(255,255,255,0.12)",
       "--accent-primary": currentAccent?.color || "#00D07A",
       "--accent-secondary": currentAccent?.color || "#00D07A",
       "--hover-bg": "#03060a",
@@ -163,6 +193,8 @@ export const ThemeProvider = ({ children }) => {
       "--mood-mid": "#2563eb",
       "--mood-low": "#d97706",
       "--mood-verylow": "#dc2626",
+      "--card-bg": "rgba(11, 18, 32, 0.85)",
+      "--overlay-bg": "rgba(0, 0, 0, 0.6)",
     };
 
     const lightTokens = {
@@ -185,6 +217,8 @@ export const ThemeProvider = ({ children }) => {
       "--mood-mid": "#3b82f6",
       "--mood-low": "#f59e0b",
       "--mood-verylow": "#ef4444",
+      "--card-bg": "rgba(255, 255, 255, 0.9)",
+      "--overlay-bg": "rgba(255, 255, 255, 0.3)",
     };
 
     if (theme === "brand") applyTokens(brandTokens, currentBg?.url, currentAccent);
@@ -192,6 +226,12 @@ export const ThemeProvider = ({ children }) => {
     else applyTokens(lightTokens, currentBg?.url, currentAccent);
 
     document.documentElement.style.setProperty("--link-color", theme === "light" ? "#1f2937" : "#9FB8D0");
+
+    if (theme === "light") {
+      document.documentElement.style.setProperty("--bg-overlay-strength", "0.4");
+    } else {
+      document.documentElement.style.setProperty("--bg-overlay-strength", "0.75");
+    }
 
   }, [theme, customBackground, accentColor]);
 

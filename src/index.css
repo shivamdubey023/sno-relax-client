@@ -24,3 +24,30 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+/* Background image should NOT affect chat and modal containers */
+.chat-fullscreen,
+.chat-container,
+.chatbot-container,
+.community-container,
+.modal-overlay,
+.modal-content {
+  background-image: none !important;
+}
+
+/* Ensure chat areas have solid backgrounds */
+.chat-fullscreen {
+  background: var(--chat-bg, var(--bg-primary)) !important;
+}
+
+.chat-container {
+  background: var(--chat-bg, var(--bg-primary)) !important;
+}
+
+.chatbot-container {
+  background: var(--chat-bg, var(--bg-primary)) !important;
+}
+
+.community-container {
+  background: var(--chat-bg, var(--bg-primary)) !important;
+}

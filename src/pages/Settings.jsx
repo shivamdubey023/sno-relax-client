@@ -131,7 +131,7 @@ export default function Settings() {
             <Image size={24} />
             <h2>Background</h2>
           </div>
-          <p className="section-desc">Set a calming background image</p>
+          <p className="section-desc">Set a calming background for Dashboard & Login pages</p>
 
           <div className="bg-image-grid">
             {backgroundImages.map((bg) => (

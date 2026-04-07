@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "../styles/Profile.css";
 import ReportModal from "../components/ReportModal";
+import BackButton from "../components/BackButton";
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -166,9 +167,7 @@ export default function Profile() {
   return (
     <div className="profile-container">
       <div className="profile-topbar">
-        <button className="back-btn" onClick={() => navigate("/") }>
-          ← Back to Dashboard
-        </button>
+        <BackButton to="/" label="Dashboard" variant="ghost" className="profile-back-btn" />
         <span className="profile-app-title">SnoRelax</span>
       </div>
 
@@ -218,15 +217,41 @@ export default function Profile() {
 
         {isEditing ? (
           <div className="edit-section">
-            <input name="name" value={user.name} onChange={handleChange} />
-            <input
-              value={communityNickname}
-              onChange={(e) => setCommunityNickname(e.target.value)}
-            />
-            <button onClick={handleSave}>Save</button>
+            <div className="edit-field">
+              <label>Full Name</label>
+              <input name="name" value={user.name} onChange={handleChange} placeholder="Your name" />
+            </div>
+            <div className="edit-field">
+              <label>Community Nickname</label>
+              <input
+                value={communityNickname}
+                onChange={(e) => setCommunityNickname(e.target.value)}
+                placeholder="Display name in community"
+              />
+            </div>
+            <div className="edit-field">
+              <label>Email</label>
+              <input name="email" value={user.email} onChange={handleChange} type="email" placeholder="your@email.com" />
+            </div>
+            <div className="edit-field">
+              <label>Phone</label>
+              <input name="phone" value={user.phone} onChange={handleChange} type="tel" placeholder="Phone number" />
+            </div>
+            <div className="edit-field">
+              <label>Emergency Contact</label>
+              <input name="emergency" value={user.emergency} onChange={handleChange} placeholder="Emergency contact number" />
+            </div>
+            <div className="edit-field">
+              <label>Date of Birth</label>
+              <input name="dob" value={user.dob} onChange={handleChange} type="date" />
+            </div>
+            <div className="edit-actions">
+              <button onClick={handleSave} className="save-btn">Save Changes</button>
+              <button onClick={() => setIsEditing(false)} className="cancel-btn">Cancel</button>
+            </div>
           </div>
         ) : (
-          <button onClick={() => setIsEditing(true)}>Edit Profile</button>
+          <button onClick={() => setIsEditing(true)} className="edit-profile-btn">Edit Profile</button>
         )}
       </div>
     </div>

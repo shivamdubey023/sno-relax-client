@@ -4,12 +4,13 @@
 
 .ai-guide-container {
   min-height: 100vh;
-  width: 100vw;
+  width: 100%;
   background: var(--bg-primary);
   color: var(--text-primary);
   padding: clamp(1rem, 3vw, 2rem);
   box-sizing: border-box;
   position: relative;
+  overflow-x: hidden;
 }
 
 /* Background pattern */
@@ -34,6 +35,13 @@
   margin-bottom: clamp(1.5rem, 4vw, 2.5rem);
   position: relative;
   z-index: 1;
+  padding-top: 60px;
+}
+
+@media (min-width: 769px) {
+  .ai-guide-header {
+    padding-top: 0;
+  }
 }
 
 .back-btn {
@@ -83,8 +91,9 @@
 
 /* Guide Card */
 .guide-card {
-  background: var(--bg-secondary);
-  padding: clamp(2rem, 5vw, 3rem);
+  background: var(--card-bg, var(--bg-secondary));
+  backdrop-filter: blur(10px);
+  padding: clamp(1.5rem, 4vw, 3rem);
   border-radius: 24px;
   border: 1px solid var(--border-color);
   box-shadow: 0 8px 40px rgba(0, 0, 0, 0.15);
@@ -318,7 +327,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.8);
+  background: var(--overlay-bg, rgba(0, 0, 0, 0.8));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -328,14 +337,18 @@
 }
 
 .routine-content {
-  background: var(--bg-secondary);
+  background: var(--card-bg, var(--bg-secondary));
+  backdrop-filter: blur(15px);
   border-radius: 24px;
-  padding: clamp(1.5rem, 4vw, 2.5rem);
+  padding: clamp(1.2rem, 3vw, 2.5rem);
   max-width: 500px;
   width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
   position: relative;
   border: 1px solid var(--border-color);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  margin: auto;
 }
 
 .close-btn {
@@ -441,21 +454,73 @@
 
 /* Responsive */
 @media (max-width: 600px) {
+  .ai-guide-container {
+    padding: 0.75rem;
+  }
+
   .ai-guide-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .guide-card {
+    padding: 1.5rem 1rem;
+  }
+
+  .guide-icon {
+    width: 60px;
+    height: 60px;
+  }
+
+  .guide-icon svg {
+    width: 28px;
+    height: 28px;
+  }
+
+  .options-grid {
+    gap: 0.5rem;
+  }
+
+  .category-btn {
+    padding: 0.85rem 1rem;
+    font-size: 0.95rem;
   }
 
   .guide-actions {
     flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .guide-actions .btn-secondary {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .tips-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .timer-value {
+    font-size: 2.5rem;
   }
 
   .routine-controls {
     flex-direction: column;
+    gap: 0.75rem;
   }
 
   .routine-controls .btn {
     max-width: 100%;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .current-step {
+    padding: 1.5rem 1rem;
+  }
+
+  .current-step p {
+    font-size: 1rem;
   }
 }

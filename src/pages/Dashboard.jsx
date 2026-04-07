@@ -30,6 +30,21 @@ export default function Dashboard({ isLoggedIn, onLogout }) {
   // ---- UI state ----
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [startupVisible, setStartupVisible] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 1024);
+      if (window.innerWidth <= 1024) {
+        setSidebarOpen(false);
+      } else {
+        setSidebarOpen(true);
+      }
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
   const [startupContent, setStartupContent] = useState("");
 
   const API_BASE =
@@ -153,6 +168,9 @@ export default function Dashboard({ isLoggedIn, onLogout }) {
 
   return (
     <div className="dashboard-container">
+      {isMobile && sidebarOpen && (
+        <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />
+      )}
       <aside className={`sidebar ${sidebarOpen ? "open" : "closed"}`}>
         <h2 className="logo">🌙 SnoRelax</h2>
 
@@ -290,7 +308,7 @@ export default function Dashboard({ isLoggedIn, onLogout }) {
             className="widget cursor-pointer"
             onClick={() =>
               window.open(
-                "https://kuro-shiv.github.io/Web_Devlopment/HV/health-vault.html",
+                "https://shivamdubey023.github.io/Web_Devlopment/HV/health-vault.html",
                 "_blank"
               )
             }

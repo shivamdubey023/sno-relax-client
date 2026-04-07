@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { API_ENDPOINTS, SOCKET_URL } from "../../config/api.config";
 import { io } from "socket.io-client";
+import { Send } from "lucide-react";
+import "../../styles/ChatStyles.css";
 
 /**
  * GroupChat Component
@@ -9,12 +11,7 @@ import { io } from "socket.io-client";
  * - Initial REST-based message loading
  * - Real-time updates via Socket.IO
  * - Typing indicators
- * - Optimistic UI updates
- *
- * Props:
- * - group: active group object
- * - userId: current user ID
- * - userNickname: display name (defaults to Anonymous)
+ * - WhatsApp-style UI
  */
 export default function GroupChat({ group, userId, userNickname = "Anonymous" }) {
   const [messages, setMessages] = useState([]);
@@ -28,12 +25,6 @@ export default function GroupChat({ group, userId, userNickname = "Anonymous" })
   const socketRef = useRef(null);
   const typingTimeoutRef = useRef(null);
 
-  /**
-   * Load messages from backend (REST API)
-   * FUTURE:
-   * - Pagination
-   * - Server-side cursors
-   */
   const loadMessages = useCallback(async () => {
     if (!group) return;
 
@@ -61,12 +52,10 @@ export default function GroupChat({ group, userId, userNickname = "Anonymous" })
     }
   }, [group]);
 
-  /* -------- Initial message load -------- */
   useEffect(() => {
     loadMessages();
   }, [loadMessages]);
 
-  /* -------- Socket.IO setup -------- */
   useEffect(() => {
     if (!group) return;
 
@@ -79,7 +68,6 @@ export default function GroupChat({ group, userId, userNickname = "Anonymous" })
     socketRef.current = socket;
     socket.emit("joinGroup", group._id);
 
-    // Desktop notification permission (one-time)
     if (
       typeof window !== "undefined" &&
       window.Notification &&
@@ -96,7 +84,6 @@ export default function GroupChat({ group, userId, userNickname = "Anonymous" })
       if (String(message.groupId) === String(group._id)) {
         setMessages((prev) => [...prev, message]);
 
-        // Notify for messages from others
         try {
           const isFromMe = String(message.senderId) === String(userId);
           if (!isFromMe && Notification.permission === "granted") {
@@ -145,15 +132,6 @@ export default function GroupChat({ group, userId, userNickname = "Anonymous" })
     };
   }, [group, userId]);
 
-  /**
-   * Polling fallback (1s)
-   * WHY THIS EXISTS:
-   * - Ensures sync if socket drops
-   * - Useful in unreliable networks
-   *
-   * FUTURE:
-   * - Can be removed once socket stability is guaranteed
-   */
   useEffect(() => {
     if (!group) return;
 
@@ -166,14 +144,10 @@ export default function GroupChat({ group, userId, userNickname = "Anonymous" })
     return () => clearInterval(id);
   }, [group, loadMessages]);
 
-  /* -------- Auto-scroll -------- */
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  /**
-   * Send message with optimistic UI update
-   */
   const sendMessage = async () => {
     if (!text.trim() || !group) return;
 
@@ -214,45 +188,10 @@ export default function GroupChat({ group, userId, userNickname = "Anonymous" })
       setMessages((prev) =>
         prev.filter((m) => m._id !== tempMessage._id)
       );
-      alert("Failed to send message. Please try again."); // FUTURE: replace with toast
+      alert("Failed to send message. Please try again.");
     }
   };
 
-  /**
-   * Delete a message
-   */
-  const deleteMessage = async (messageId) => {
-    if (!confirm("Delete this message?")) return; // FUTURE: custom modal
-
-    try {
-      const res = await fetch(
-        API_ENDPOINTS.COMMUNITY.DELETE_MESSAGE(messageId),
-        {
-          method: "DELETE",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({ userId }),
-        }
-      );
-
-      if (!res.ok) throw new Error();
-
-      setMessages((prev) =>
-        prev.filter((m) => String(m._id) !== String(messageId))
-      );
-
-      socketRef.current?.emit("deleteMessage", {
-        groupId: group._id,
-        messageId,
-      });
-    } catch {
-      alert("Failed to delete message");
-    }
-  };
-
-  /**
-   * Emit typing indicator
-   */
   const handleTyping = () => {
     socketRef.current?.emit("typing", {
       groupId: group._id,
@@ -271,46 +210,79 @@ export default function GroupChat({ group, userId, userNickname = "Anonymous" })
     }, 2000);
   };
 
-  /* ------------------ UI ------------------ */
-
   if (loading) {
-    return <div style={{ padding: 20, textAlign: "center" }}>Loading messages...</div>;
+    return (
+      <div className="chat-container">
+        <div className="chat-empty">
+          <p>Loading messages...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-      {/* Message list */}
-      <div style={{ flex: 1, overflowY: "auto", padding: 12, background: "#f5f5f5" }}>
-        {error && <div style={{ color: "#c62828" }}>{error}</div>}
+    <div className="chat-container">
+      <div className="chat-messages">
+        {error && <div className="chat-empty"><p style={{color: '#ef4444'}}>{error}</p></div>}
 
-        {messages.map((msg) => (
-          <div key={msg._id} style={{ marginBottom: 12 }}>
-            <strong>{msg.senderNickname}</strong>
-            <div>{msg.message}</div>
-            {msg.senderId === userId && (
-              <button onClick={() => deleteMessage(msg._id)}>✕</button>
-            )}
+        {messages.map((msg) => {
+          const isOwn = String(msg.senderId) === String(userId);
+          return (
+            <div key={msg._id} className={`message-row ${isOwn ? 'sent' : 'received'}`}>
+              <div className={`message-bubble ${isOwn ? 'sent' : 'received'}`}>
+                {!isOwn && <div className="message-sender">{msg.senderNickname}</div>}
+                <p className="message-text">{msg.message}</p>
+                <div className="message-meta">
+                  <span className="message-time">
+                    {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                  {isOwn && <span className="message-status">✓</span>}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+        
+        {typing && (
+          <div className="message-row received">
+            <div className="typing-indicator">
+              <span className="typing-dot"></span>
+              <span className="typing-dot"></span>
+              <span className="typing-dot"></span>
+            </div>
           </div>
-        ))}
+        )}
+        
         <div ref={endRef} />
       </div>
 
-      {typing && <div style={{ fontSize: 12 }}>Someone is typing...</div>}
-
-      {/* Input */}
-      <div style={{ padding: 12 }}>
-        <input
-          ref={inputRef}
-          value={text}
-          onChange={(e) => {
-            setText(e.target.value);
-            handleTyping();
-          }}
-          onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-          placeholder="Type a message..."
-          style={{ width: "80%" }}
-        />
-        <button onClick={sendMessage}>Send</button>
+      <div className="chat-input-area">
+        <div className="chat-input-wrapper">
+          <textarea
+            ref={inputRef}
+            className="chat-input"
+            value={text}
+            onChange={(e) => {
+              setText(e.target.value);
+              handleTyping();
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+              }
+            }}
+            placeholder="Type a message..."
+            rows={1}
+          />
+        </div>
+        <button 
+          className="chat-action-btn send" 
+          onClick={sendMessage}
+          disabled={!text.trim()}
+        >
+          <Send size={20} />
+        </button>
       </div>
     </div>
   );

@@ -1,8 +1,9 @@
 import React, { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { TrendingUp, TrendingDown, Minus, RefreshCw, Activity, Calendar, AlertTriangle } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus, RefreshCw, Activity, Calendar, AlertTriangle, Frown } from "lucide-react";
 import "../styles/ProgressReport.css";
+import BackButton from "../components/BackButton";
 
 export default function ProgressReport() {
   const navigate = useNavigate();
@@ -70,9 +71,7 @@ export default function ProgressReport() {
   return (
     <div className="progress-container">
       <div className="progress-header">
-        <button className="back-btn" onClick={() => navigate("/profile")}>
-          ← Back
-        </button>
+        <BackButton to="/profile" label="Back" variant="ghost" className="progress-back-btn" />
         <h1>Weekly Progress</h1>
       </div>
 
@@ -145,6 +144,31 @@ export default function ProgressReport() {
               </div>
             </div>
 
+            {/* Worst Day Indicator */}
+            {(insights.worstDay || insights.lowestDay) && (
+              <div className="worst-day-card">
+                <div className="worst-day-icon">
+                  <Frown size={28} />
+                </div>
+                <div className="worst-day-content">
+                  <h3>Toughest Day</h3>
+                  <p className="worst-day-date">
+                    {insights.worstDay?.date || insights.lowestDay?.date}
+                  </p>
+                  {insights.worstDay?.note && (
+                    <p className="worst-day-note">{insights.worstDay.note}</p>
+                  )}
+                  {insights.lowestDay?.reason && (
+                    <p className="worst-day-note">{insights.lowestDay.reason}</p>
+                  )}
+                </div>
+                <div className="worst-day-score">
+                  <span className="score">{insights.worstDay?.score !== undefined ? insights.worstDay.score : insights.lowestDay?.score}</span>
+                  <span className="label">score</span>
+                </div>
+              </div>
+            )}
+
             {/* Narrative */}
             {insights.narrative && (
               <div className="narrative-card">
@@ -152,8 +176,55 @@ export default function ProgressReport() {
                 {insights.narrative.headline && (
                   <p className="headline">{insights.narrative.headline}</p>
                 )}
+                {insights.narrative.summary && (
+                  <p className="detail">{insights.narrative.summary}</p>
+                )}
                 {insights.narrative.detail && (
                   <p className="detail">{insights.narrative.detail}</p>
+                )}
+                {insights.insight && (
+                  <p className="detail">{insights.insight}</p>
+                )}
+                {insights.summary && (
+                  <p className="detail">{insights.summary}</p>
+                )}
+              </div>
+            )}
+
+            {/* Additional Insights */}
+            {insights.bestDay && (
+              <div className="best-day-card">
+                <div className="best-day-icon">
+                  <TrendingUp size={24} />
+                </div>
+                <div className="best-day-content">
+                  <h3>Best Day</h3>
+                  <p className="best-day-date">{insights.bestDay.date}</p>
+                  {insights.bestDay.note && (
+                    <p className="best-day-note">{insights.bestDay.note}</p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Activity Summary */}
+            {insights.totalEntries !== undefined && (
+              <div className="activity-summary">
+                <div className="activity-item">
+                  <span className="activity-value">{insights.totalEntries}</span>
+                  <span className="activity-label">Total Entries</span>
+                </div>
+                {insights.streak !== undefined && (
+                  <div className="activity-item">
+                    <span className="activity-value">{insights.streak}</span>
+                    <span className="activity-label">Day Streak</span>
+                  </div>
+                )}
+                {insights.completionRate !== undefined && (
+                  <div className="activity-item">
+                    <span className="activity-value">{insights.completionRate}%</span>
+                    <span className="activity-label">Completion</span>
+                  </div>
                 )}
               </div>
             )}

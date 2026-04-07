@@ -5,6 +5,7 @@ import { io } from "socket.io-client";
 import { useNavigate } from 'react-router-dom';
 import { Users, Plus, X, MessageCircle, Send, LogOut, LogIn, Hash } from "lucide-react";
 import "../styles/Community.css";
+import "../styles/ChatStyles.css";
 
 export default function CommunityPage() {
   const storedUserId =
@@ -34,7 +35,49 @@ export default function CommunityPage() {
   const messagesEndRef = useRef(null);
   const inputAreaRef = useRef(null);
   const msgInputRef = useRef(null);
+  const messagesContainerRef = useRef(null);
   const socketRef = useRef(null);
+  const [showScrollDown, setShowScrollDown] = useState(false);
+  const [showScrollUp, setShowScrollUp] = useState(false);
+
+  // Scroll functions
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const scrollToTop = () => {
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
+  // Handle scroll visibility
+  useEffect(() => {
+    const container = messagesContainerRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = container;
+      setShowScrollDown(scrollHeight - scrollTop - clientHeight > 150);
+      setShowScrollUp(scrollTop > 150);
+    };
+
+    container.addEventListener("scroll", handleScroll);
+    handleScroll();
+    return () => container.removeEventListener("scroll", handleScroll);
+  }, [messages]);
+
+  // Auto-scroll to bottom on new messages (if user is near bottom)
+  useEffect(() => {
+    if (!messagesEndRef.current || !messagesContainerRef.current) return;
+    
+    const container = messagesContainerRef.current;
+    const { scrollHeight, scrollTop, clientHeight } = container;
+    
+    if (scrollHeight - scrollTop - clientHeight < 200) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages]);
 
   useEffect(() => {
     if (msgInputRef.current) {
@@ -53,10 +96,6 @@ export default function CommunityPage() {
   useEffect(() => {
     loadGroups();
   }, []);
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
 
   useEffect(() => {
     if (!selectedGroup) return;
@@ -288,54 +327,77 @@ export default function CommunityPage() {
 
             {isMember ? (
               <>
-                <div className="messages-container">
-                  {messages.length === 0 ? (
-                    <div className="empty-messages">
-                      <MessageCircle size={40} />
-                      <p>No messages yet</p>
-                      <span>Be the first to say hello!</span>
-                    </div>
-                  ) : (
-                    messages.map((m) => {
-                      const mid = m._id || m.id;
-                      const own = String(m.senderId) === String(currentUserId);
-                      return (
-                        <div key={mid} className={`message-item ${own ? 'own' : ''}`}>
-                          <div className="msg-bubble">
-                            <div className="msg-sender">{m.senderNickname || 'Anonymous'}</div>
-                            <div className="msg-text">{m.message || m.text}</div>
-                            <div className="msg-meta">
-                              {m.isEdited && <span className="edited">edited</span>}
-                              <span className="msg-timestamp">
-                                {new Date(m.createdAt || m.date || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                              </span>
+                <div className="chat-scroll-container">
+                  {/* Scroll Down Button */}
+                  <button 
+                    className={`chat-scroll-btn scroll-down ${!showScrollDown ? 'hidden' : ''}`}
+                    onClick={scrollToBottom}
+                    title="Scroll to bottom"
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M7 10l5 5 5-5"/>
+                    </svg>
+                  </button>
+
+                  {/* Scroll Up Button */}
+                  <button 
+                    className={`chat-scroll-btn scroll-up ${!showScrollUp ? 'hidden' : ''}`}
+                    onClick={scrollToTop}
+                    title="Scroll to top"
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M17 14l-5-5-5 5"/>
+                    </svg>
+                  </button>
+
+                  <div className="chat-messages messages-container" ref={messagesContainerRef}>
+                    {messages.length === 0 ? (
+                      <div className="chat-empty">
+                        <MessageCircle size={60} />
+                        <h3>No messages yet</h3>
+                        <p>Be the first to say hello!</p>
+                      </div>
+                    ) : (
+                      messages.map((m) => {
+                        const mid = m._id || m.id;
+                        const own = String(m.senderId) === String(currentUserId);
+                        return (
+                          <div key={mid} className={`message-row ${own ? 'sent' : 'received'}`}>
+                            <div className={`message-bubble ${own ? 'sent' : 'received'}`}>
+                              {!own && <div className="message-sender">{m.senderNickname || 'Anonymous'}</div>}
+                              <p className="message-text">{m.message || m.text}</p>
+                              <div className="message-meta">
+                                {m.isEdited && <span className="edited">edited</span>}
+                                <span className="message-time">
+                                  {new Date(m.createdAt || m.date || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </span>
+                                {own && <span className="message-status">✓</span>}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      );
-                    })
-                  )}
-                  <div ref={messagesEndRef} />
+                        );
+                      })
+                    )}
+                    <div ref={messagesEndRef} />
+                  </div>
                 </div>
 
-                <div className="msg-input-area">
-                  <div className="nickname-display">
-                    Posting as: <strong>{nickname}</strong>
-                  </div>
-                  <form onSubmit={sendMessage}>
+                <div className="chat-input-area msg-input-area">
+                  <div className="msg-input-wrapper">
                     <textarea
                       ref={msgInputRef}
-                      className="msg-input"
+                      className="chat-input msg-input"
                       value={msgInput}
                       onChange={(e) => setMsgInput(e.target.value)}
                       onKeyDown={handleKeyDown}
-                      placeholder="Write a message (Ctrl+Enter to send)"
+                      placeholder="Type a message..."
                       disabled={!isMember || loading}
+                      rows={1}
                     />
-                    <button className="msg-send" type="submit" disabled={loading || !isMember || !msgInput.trim()}>
-                      <Send size={20} />
-                    </button>
-                  </form>
+                  </div>
+                  <button className="chat-action-btn send msg-send" type="submit" disabled={loading || !isMember || !msgInput.trim()}>
+                    <Send size={20} />
+                  </button>
                 </div>
               </>
             ) : (

@@ -64,6 +64,11 @@
   margin: 0;
 }
 
+.progress-back-btn {
+  font-size: 0.85rem;
+  padding: 0.5rem 0.8rem;
+}
+
 .progress-content {
   max-width: 800px;
   margin: 0 auto;
@@ -279,6 +284,150 @@
   color: var(--mood-mid);
 }
 
+/* Worst Day Card */
+.worst-day-card {
+  background: linear-gradient(135deg, var(--mood-verylow), #8B5CF6);
+  padding: clamp(1.25rem, 3vw, 1.5rem);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: 0 6px 25px rgba(239, 68, 68, 0.25);
+}
+
+.worst-day-icon {
+  width: 50px;
+  height: 50px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+}
+
+.worst-day-content {
+  flex: 1;
+}
+
+.worst-day-content h3 {
+  margin: 0;
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+}
+
+.worst-day-date {
+  margin: 0.25rem 0 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: white;
+}
+
+.worst-day-note {
+  margin: 0.25rem 0 0;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-style: italic;
+}
+
+.worst-day-score {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.worst-day-score .score {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: white;
+}
+
+.worst-day-score .label {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Best Day Card */
+.best-day-card {
+  background: linear-gradient(135deg, var(--mood-high), #10B981);
+  padding: clamp(1rem, 2.5vw, 1.25rem);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: 0 6px 25px rgba(16, 185, 129, 0.25);
+}
+
+.best-day-icon {
+  width: 44px;
+  height: 44px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+}
+
+.best-day-content {
+  flex: 1;
+}
+
+.best-day-content h3 {
+  margin: 0;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+}
+
+.best-day-date {
+  margin: 0.2rem 0 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: white;
+}
+
+.best-day-note {
+  margin: 0.2rem 0 0;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* Activity Summary */
+.activity-summary {
+  background: var(--bg-secondary);
+  padding: clamp(1.25rem, 3vw, 1.5rem);
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-around;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.activity-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.25rem;
+}
+
+.activity-value {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--accent-primary);
+}
+
+.activity-label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
 /* Narrative Card */
 .narrative-card {
   background: var(--bg-secondary);
@@ -475,5 +624,23 @@
 
   .mood-stats {
     justify-content: center;
+  }
+
+  .worst-day-card {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .best-day-card {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .activity-summary {
+    gap: 0.75rem;
+  }
+
+  .activity-item {
+    min-width: 80px;
   }
 }
