@@ -1,5 +1,6 @@
 import React from "react";
 import Help from "../components/Help";
+import "../styles/Help.css";
 
 export default function HelpPage() {
   return (

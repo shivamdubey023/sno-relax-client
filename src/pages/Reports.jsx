@@ -1,43 +1,30 @@
 import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import "../styles/Profile.css";
+import { Upload, FileText, Clock, AlertCircle, CheckCircle } from "lucide-react";
+import "../styles/Reports.css";
 
-/**
- * Reports Page
- * ------------
- * Allows users to upload hospital/medical report images
- * and view OCR + AI analysis results.
- */
 export default function Reports() {
   const navigate = useNavigate();
 
-  // UI state
   const [loading, setLoading] = useState(false);
   const [reports, setReports] = useState([]);
   const [file, setFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const [dragActive, setDragActive] = useState(false);
 
-  // User + API
   const userId = localStorage.getItem("sno_userId") || "";
   const API_URL = process.env.REACT_APP_API_BASE || "";
 
-  /**
-   * Fetch all uploaded reports for the user
-   */
   const fetchAll = useCallback(async () => {
     if (!userId) return;
 
     try {
       setLoading(true);
-
       const base = API_URL || "";
-      const url = `${base}/api/reports/${encodeURIComponent(
-        userId
-      )}?all=1`;
+      const url = `${base}/api/reports/${encodeURIComponent(userId)}?all=1`;
 
-      const res = await axios.get(url, {
-        withCredentials: true,
-      });
+      const res = await axios.get(url, { withCredentials: true });
 
       if (res.data && res.data.exists) {
         setReports(res.data.reports || []);
@@ -45,36 +32,50 @@ export default function Reports() {
         setReports([]);
       }
     } catch (err) {
-      console.warn(
-        "Failed to fetch reports:",
-        err?.message || err
-      );
+      console.warn("Failed to fetch reports:", err?.message || err);
       setReports([]);
     } finally {
       setLoading(false);
     }
   }, [API_URL, userId]);
 
-  /**
-   * Load reports on mount / user change
-   */
   useEffect(() => {
     if (!userId) return;
     fetchAll();
   }, [userId, fetchAll]);
 
-  /**
-   * Handle file selection
-   */
   const handleFile = (e) => {
     const selected = e.target.files?.[0];
     if (!selected) return;
     setFile(selected);
+    if (selected.type.startsWith("image/")) {
+      setPreviewUrl(URL.createObjectURL(selected));
+    }
   };
 
-  /**
-   * Upload selected image file
-   */
+  const handleDrag = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      const droppedFile = e.dataTransfer.files[0];
+      if (droppedFile.type.startsWith("image/")) {
+        setFile(droppedFile);
+        setPreviewUrl(URL.createObjectURL(droppedFile));
+      }
+    }
+  };
+
   const handleUpload = async () => {
     if (!file) {
       alert("Please choose an image file to upload");
@@ -87,193 +88,196 @@ export default function Reports() {
 
     try {
       setLoading(true);
-
       const form = new FormData();
       form.append("userId", userId);
-      form.append(
-        "userName",
-        localStorage.getItem("sno_firstName") || ""
-      );
+      form.append("userName", localStorage.getItem("sno_firstName") || "");
       form.append("image", file);
 
       const base = API_URL || "";
       const url = `${base}/api/reports/upload`;
 
-      // Let axios set Content-Type automatically for FormData
-      const res = await axios.post(url, form, {
-        withCredentials: true,
-      });
+      const res = await axios.post(url, form, { withCredentials: true });
 
       if (res.data && res.data.ok) {
-        alert("Report uploaded successfully");
+        alert("Report uploaded successfully!");
         setFile(null);
+        setPreviewUrl(null);
         fetchAll();
       } else {
         alert("Upload failed");
       }
     } catch (err) {
       console.error("Upload error:", err);
-      alert(
-        "Upload failed: " +
-          (err?.response?.data?.error ||
-            err?.message ||
-            "Unknown error")
-      );
+      alert("Upload failed: " + (err?.response?.data?.error || err?.message || "Unknown error"));
     } finally {
       setLoading(false);
     }
   };
 
-  /**
-   * Build image URL for report preview
-   */
   const getImageUrl = (id) => {
     const base = API_URL || "";
     return `${base}/api/reports/image/${id}`;
   };
 
   return (
-    <div className="profile-container">
-      {/* Top Bar */}
-      <div className="profile-topbar">
-        <button
-          className="back-btn"
-          onClick={() => navigate("/profile")}
-          aria-label="Back to Profile"
-        >
+    <div className="reports-container">
+      <div className="reports-header">
+        <button className="back-btn" onClick={() => navigate("/profile")}>
           ← Back
         </button>
-        <span className="profile-app-title">
-          Hospital Reports
-        </span>
+        <h1>Medical Reports</h1>
       </div>
 
-      <div className="profile-card">
+      <div className="reports-content">
         {/* Upload Section */}
-        <h3 style={{ marginBottom: 12 }}>
-          Upload New Report
-        </h3>
-
-        <input
-          type="file"
-          accept="image/*"
-          onChange={handleFile}
-        />
-
-        <div
-          style={{
-            marginTop: 12,
-            display: "flex",
-            gap: 8,
-          }}
-        >
-          <button
-            className="upload-btn"
-            onClick={handleUpload}
-            disabled={loading || !file}
+        <div className="upload-section">
+          <h2><Upload size={20} /> Upload Report</h2>
+          
+          <div
+            className={`drop-zone ${dragActive ? "active" : ""}`}
+            onDragEnter={handleDrag}
+            onDragLeave={handleDrag}
+            onDragOver={handleDrag}
+            onDrop={handleDrop}
           >
-            Upload
-          </button>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleFile}
+              className="file-input"
+              id="file-upload"
+            />
+            <label htmlFor="file-upload" className="drop-label">
+              {file ? (
+                <>
+                  <CheckCircle size={40} className="file-icon success" />
+                  <p className="file-name">{file.name}</p>
+                  <p className="file-size">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                </>
+              ) : (
+                <>
+                  <FileText size={40} className="file-icon" />
+                  <p>Drop your medical report here</p>
+                  <p className="drop-hint">or click to browse</p>
+                </>
+              )}
+            </label>
+          </div>
 
-          <button
-            className="upload-btn"
-            onClick={() => setFile(null)}
-            disabled={loading}
-          >
-            Clear
-          </button>
+          {previewUrl && (
+            <div className="preview-container">
+              <img src={previewUrl} alt="Preview" className="preview-image" />
+            </div>
+          )}
+
+          <div className="upload-actions">
+            <button
+              className="btn btn-primary"
+              onClick={handleUpload}
+              disabled={loading || !file}
+            >
+              {loading ? "Uploading..." : "Upload Report"}
+            </button>
+            {file && (
+              <button
+                className="btn btn-secondary"
+                onClick={() => {
+                  setFile(null);
+                  setPreviewUrl(null);
+                }}
+                disabled={loading}
+              >
+                Clear
+              </button>
+            )}
+          </div>
         </div>
 
-        {/* Divider */}
-        <div
-          style={{
-            height: 1,
-            width: "100%",
-            background:
-              "linear-gradient(90deg,#4aa0e2,#6ee7b7)",
-            margin: "16px 0",
-          }}
-        />
-
         {/* Reports List */}
-        <h3>Medical Report Summarization</h3>
+        <div className="reports-section">
+          <h2><FileText size={20} /> Your Reports</h2>
 
-        {loading && <p>Loading reports...</p>}
+          {loading && reports.length === 0 && (
+            <div className="loading-state">
+              <div className="spinner"></div>
+              <p>Loading reports...</p>
+            </div>
+          )}
 
-        {!loading && reports.length === 0 && (
-          <p>No reports uploaded yet.</p>
-        )}
+          {!loading && reports.length === 0 && (
+            <div className="empty-state">
+              <FileText size={60} />
+              <p>No reports uploaded yet</p>
+              <span>Upload your first medical report to get started</span>
+            </div>
+          )}
 
-        {!loading && reports.length > 0 && (
-          <div style={{ textAlign: "left" }}>
-            {reports.map((r) => (
-              <div
-                key={r.id}
-                style={{
-                  marginBottom: 18,
-                  paddingBottom: 12,
-                  borderBottom: "1px solid #123",
-                }}
-              >
-                <p>
-                  <strong>Uploaded:</strong>{" "}
-                  {new Date(r.createdAt).toLocaleString()}
-                </p>
+          {!loading && reports.length > 0 && (
+            <div className="reports-list">
+              {reports.map((r) => (
+                <div key={r.id} className="report-card">
+                  <div className="report-header">
+                    <div className="report-info">
+                      <h3>Report</h3>
+                      <span className="report-date">
+                        <Clock size={14} />
+                        {new Date(r.createdAt).toLocaleDateString()}
+                      </span>
+                    </div>
+                  </div>
 
-                <p>
-                  <strong>OCR Text:</strong>
-                </p>
-                <pre
-                  style={{
-                    whiteSpace: "pre-wrap",
-                    background: "#0b1e3d",
-                    padding: 12,
-                    borderRadius: 8,
-                    color: "#fff",
-                  }}
-                >
-                  {r.ocrText || "(No OCR detected)"}
-                </pre>
+                  <div className="report-content">
+                    <div className="report-analysis">
+                      <h4><AlertCircle size={16} /> Analysis</h4>
+                      
+                      {r.analysis?.tests?.length > 0 && (
+                        <div className="analysis-item">
+                          <span className="label">Tests:</span>
+                          <span className="value">{(r.analysis.tests || []).join(", ")}</span>
+                        </div>
+                      )}
+                      
+                      {r.analysis?.numbers?.length > 0 && (
+                        <div className="analysis-item">
+                          <span className="label">Values:</span>
+                          <span className="value">{(r.analysis.numbers || []).join(", ")}</span>
+                        </div>
+                      )}
+                      
+                      {r.analysis?.dates?.length > 0 && (
+                        <div className="analysis-item">
+                          <span className="label">Dates:</span>
+                          <span className="value">{(r.analysis.dates || []).join(", ")}</span>
+                        </div>
+                      )}
 
-                <p>
-                  <strong>Analysis:</strong>
-                </p>
-                <div>
-                  <p>
-                    <strong>Detected tests:</strong>{" "}
-                    {(r.analysis?.tests || []).join(", ") ||
-                      "None"}
-                  </p>
-                  <p>
-                    <strong>Numbers:</strong>{" "}
-                    {(r.analysis?.numbers || []).join(", ") ||
-                      "None"}
-                  </p>
-                  <p>
-                    <strong>Dates:</strong>{" "}
-                    {(r.analysis?.dates || []).join(", ") ||
-                      "None"}
-                  </p>
-                  <p>
-                    <strong>Summary:</strong>{" "}
-                    {r.analysis?.summary || "—"}
-                  </p>
+                      {r.analysis?.summary && (
+                        <div className="analysis-summary">
+                          <span className="label">Summary:</span>
+                          <p>{r.analysis.summary}</p>
+                        </div>
+                      )}
+                    </div>
+
+                    {r.ocrText && (
+                      <div className="ocr-section">
+                        <h4>OCR Text</h4>
+                        <pre className="ocr-text">{r.ocrText}</pre>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="report-image">
+                    <img
+                      src={getImageUrl(r.id)}
+                      alt="Medical report"
+                    />
+                  </div>
                 </div>
-
-                <div style={{ marginTop: 12 }}>
-                  <img
-                    src={getImageUrl(r.id)}
-                    alt="Medical report"
-                    style={{
-                      maxWidth: "100%",
-                      borderRadius: 8,
-                    }}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

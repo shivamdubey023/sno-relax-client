@@ -1,0 +1,461 @@
+/* ============================
+   AI Guide Page - Theme-Aware
+   ============================ */
+
+.ai-guide-container {
+  min-height: 100vh;
+  width: 100vw;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  padding: clamp(1rem, 3vw, 2rem);
+  box-sizing: border-box;
+  position: relative;
+}
+
+/* Background pattern */
+.ai-guide-container::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 30%, rgba(0, 255, 102, 0.04) 0%, transparent 40%),
+    radial-gradient(circle at 80% 70%, rgba(59, 130, 246, 0.04) 0%, transparent 40%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.ai-guide-header {
+  display: flex;
+  align-items: center;
+  gap: clamp(1rem, 3vw, 2rem);
+  margin-bottom: clamp(1.5rem, 4vw, 2.5rem);
+  position: relative;
+  z-index: 1;
+}
+
+.back-btn {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: clamp(0.5rem, 1.5vw, 0.75rem) clamp(0.75rem, 2vw, 1.2rem);
+  border-radius: 10px;
+  font-size: clamp(0.9rem, 2vw, 1rem);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.back-btn:hover {
+  background: var(--accent-primary);
+  color: var(--bg-primary);
+  border-color: var(--accent-primary);
+}
+
+.ai-guide-header h1 {
+  font-size: clamp(1.3rem, 3.5vw, 2rem);
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.ai-guide-header h1 svg {
+  color: var(--accent-primary);
+}
+
+.ai-guide-content {
+  max-width: 700px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1.5rem, 4vw, 2rem);
+  position: relative;
+  z-index: 1;
+}
+
+/* Guide Card */
+.guide-card {
+  background: var(--bg-secondary);
+  padding: clamp(2rem, 5vw, 3rem);
+  border-radius: 24px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.15);
+  text-align: center;
+}
+
+.guide-icon {
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+  color: var(--bg-primary);
+  box-shadow: 0 8px 30px rgba(0, 255, 102, 0.3);
+}
+
+.guide-card h2 {
+  font-size: clamp(1.2rem, 3vw, 1.6rem);
+  color: var(--text-primary);
+  margin: 0 0 1.5rem;
+}
+
+.guide-message {
+  font-size: clamp(0.95rem, 2.2vw, 1.1rem);
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin: 0 0 2rem;
+}
+
+/* Loading State */
+.loading-state {
+  padding: 2rem;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid var(--border-color);
+  border-top-color: var(--accent-primary);
+  border-radius: 50%;
+  margin: 0 auto 1rem;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-state p {
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* Category Options */
+.category-options {
+  margin-bottom: 2rem;
+}
+
+.options-label {
+  color: var(--text-muted);
+  font-size: clamp(0.85rem, 1.8vw, 0.95rem);
+  margin-bottom: 1rem;
+}
+
+.options-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.category-btn {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background: var(--bg-tertiary);
+  border: 2px solid var(--border-color);
+  border-radius: 16px;
+  color: var(--text-primary);
+  font-size: clamp(1rem, 2.2vw, 1.1rem);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  width: 100%;
+  text-align: left;
+}
+
+.category-btn:hover {
+  border-color: var(--accent-primary);
+  background: rgba(0, 255, 102, 0.1);
+  transform: translateX(4px);
+}
+
+.category-btn svg {
+  color: var(--accent-primary);
+  flex-shrink: 0;
+}
+
+.category-btn span {
+  flex: 1;
+}
+
+.category-btn svg:last-child {
+  opacity: 0.5;
+}
+
+/* Guide Actions */
+.guide-actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+}
+
+.last-action {
+  margin-top: 1.5rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* Buttons */
+.btn {
+  padding: clamp(0.7rem, 2vw, 0.9rem) clamp(1.2rem, 3vw, 1.8rem);
+  border-radius: 12px;
+  font-size: clamp(0.9rem, 2vw, 1rem);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  color: var(--bg-primary);
+  box-shadow: 0 4px 15px rgba(0, 255, 102, 0.3);
+}
+
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 255, 102, 0.4);
+}
+
+.btn-secondary {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--hover-bg);
+}
+
+.btn-icon {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+}
+
+.btn-icon:hover:not(:disabled) {
+  background: var(--accent-primary);
+  color: var(--bg-primary);
+  border-color: var(--accent-primary);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Tips Section */
+.tips-section {
+  background: var(--bg-secondary);
+  padding: clamp(1.5rem, 4vw, 2rem);
+  border-radius: 20px;
+  border: 1px solid var(--border-color);
+}
+
+.tips-section h3 {
+  font-size: clamp(1rem, 2.2vw, 1.2rem);
+  color: var(--text-primary);
+  margin: 0 0 1.5rem;
+}
+
+.tips-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
+.tip-card {
+  background: var(--bg-tertiary);
+  padding: 1.25rem;
+  border-radius: 12px;
+  text-align: center;
+  border: 1px solid var(--border-color);
+  transition: all 0.25s ease;
+}
+
+.tip-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent-primary);
+}
+
+.tip-card svg {
+  color: var(--accent-primary);
+  margin-bottom: 0.75rem;
+}
+
+.tip-card p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: clamp(0.85rem, 1.8vw, 0.9rem);
+  line-height: 1.4;
+}
+
+/* Routine Modal */
+.routine-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+  backdrop-filter: blur(8px);
+}
+
+.routine-content {
+  background: var(--bg-secondary);
+  border-radius: 24px;
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+  max-width: 500px;
+  width: 100%;
+  position: relative;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+}
+
+.close-btn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 40px;
+  height: 40px;
+  background: var(--bg-tertiary);
+  border: none;
+  border-radius: 10px;
+  color: var(--text-primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s ease;
+}
+
+.close-btn:hover {
+  background: var(--error);
+  color: white;
+}
+
+.routine-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.routine-header h2 {
+  font-size: clamp(1.3rem, 3vw, 1.6rem);
+  color: var(--text-primary);
+  margin: 0 0 0.5rem;
+}
+
+.routine-duration {
+  color: var(--accent-primary);
+  font-weight: 600;
+}
+
+.routine-progress {
+  margin-bottom: 2rem;
+}
+
+.routine-progress span {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.progress-bar {
+  height: 8px;
+  background: var(--bg-tertiary);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.current-step {
+  background: var(--bg-tertiary);
+  padding: 2rem;
+  border-radius: 16px;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.current-step p {
+  font-size: clamp(1.1rem, 2.5vw, 1.3rem);
+  color: var(--text-primary);
+  margin: 0;
+  line-height: 1.6;
+}
+
+.timer-display {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.timer-value {
+  font-size: 3rem;
+  font-weight: 700;
+  color: var(--accent-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.routine-controls {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.routine-controls .btn {
+  flex: 1;
+  max-width: 200px;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .ai-guide-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .guide-actions {
+    flex-direction: column;
+  }
+
+  .routine-controls {
+    flex-direction: column;
+  }
+
+  .routine-controls .btn {
+    max-width: 100%;
+  }
+}

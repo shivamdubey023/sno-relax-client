@@ -1,163 +1,184 @@
 import React, { useState } from "react";
+import { HelpCircle, Info, BookOpen, Phone, Mail, MessageCircle } from "lucide-react";
+import "../styles/Help.css";
 
-/**
- * Help Component
- * --------------
- * This page provides:
- * 1. FAQ (How to use the application modules)
- * 2. About section (App purpose, mission, privacy, guidelines)
- *
- * NOTE:
- * - This is a static informational component
- * - No backend/API dependency (safe for demo & offline use)
- * - Designed for clarity and accessibility
- */
 export default function Help() {
-  /**
-   * activeTab controls which section is visible:
-   * - "faq"   → Frequently Asked Questions
-   * - "about" → About the application
-   */
   const [activeTab, setActiveTab] = useState("faq");
 
-  /**
-   * FAQ content
-   * -----------
-   * Stored as an array to allow:
-   * - Easy future updates
-   * - Potential dynamic rendering from backend later
-   */
   const faqs = [
     {
       question: "What is SnoRelax?",
-      answer:
-        "SnoRelax is a mental wellness and community platform designed to help you manage stress, track your mood, connect with others, and access mental health support through an AI chatbot.",
+      answer: "SnoRelax is a mental wellness and community platform designed to help you manage stress, track your mood, connect with others, and access mental health support through an AI chatbot."
     },
     {
       question: "How do I use the Chatbot?",
-      answer:
-        "Go to the Chat tab to talk with SnoBot. You can type messages or use voice input (click the microphone icon). The bot supports multiple languages and can answer questions about mental wellness.",
+      answer: "Go to the Chat tab to talk with SnoBot. You can type messages or use voice input (click the microphone icon). The bot supports multiple languages and can answer questions about mental wellness."
     },
     {
       question: "How does Mood Tracking work?",
-      answer:
-        "Go to the Mood Tracker to log how you're feeling. You can select your current mood and optionally add notes. Your mood history is saved and helps track patterns over time.",
+      answer: "Go to the Mood Tracker to log how you're feeling. You can select your current mood and optionally add notes. Your mood history is saved and helps track patterns over time."
     },
     {
       question: "How do I join a community group?",
-      answer:
-        "Go to the Community tab to see all available groups. Click 'Join' on any group that interests you. You can then participate in anonymous group chats using your community nickname.",
+      answer: "Go to the Community tab to see all available groups. Click 'Join' on any group that interests you. You can then participate in anonymous group chats using your community nickname."
     },
     {
       question: "What does anonymous messaging mean?",
-      answer:
-        "When you join a group, you appear with a community nickname instead of your real name. This maintains your privacy while allowing meaningful conversations.",
+      answer: "When you join a group, you appear with a community nickname instead of your real name. This maintains your privacy while allowing meaningful conversations."
     },
     {
       question: "Can I create my own group?",
-      answer:
-        "Yes! In the Community tab, use the 'Create New Group' form. As the admin, you can set the group name, description, and maximum members.",
+      answer: "Yes! In the Community tab, use the 'Create New Group' form. As the admin, you can set the group name, description, and maximum members."
     },
     {
       question: "Can I delete my messages?",
-      answer:
-        "Yes. In group chats, you can delete your own messages. Group admins can delete messages that violate community guidelines.",
+      answer: "Yes. In group chats, you can delete your own messages. Group admins can delete messages that violate community guidelines."
     },
     {
       question: "Is my data private?",
-      answer:
-        "Your personal information and mood data are private. Only your community nickname is visible to others.",
-    },
+      answer: "Your personal information and mood data are private. Only your community nickname is visible to others."
+    }
   ];
 
-  /**
-   * About section content
-   * ---------------------
-   * Uses pre-formatted text (whiteSpace: pre-wrap)
-   * so bullet points render cleanly without HTML lists.
-   */
-  const aboutSections = [
-    {
-      title: "About SnoRelax",
-      content:
-        "SnoRelax is a mental wellness platform combining AI support, community connection, and mood tracking.",
-    },
-    {
-      title: "Our Mission",
-      content:
-        "To make mental health support accessible, affordable, and stigma-free for everyone.",
-    },
-    {
-      title: "Key Features",
-      content: `
-• AI Chatbot (SnoBot)
-• Mood Tracking
-• Community Groups
-• Multi-language Support
-• Voice Input
-• Real-time Messaging
-      `,
-    },
-    {
-      title: "Community Guidelines",
-      content: `
-• Be respectful
-• No harassment or abuse
-• Respect privacy
-• No spam
-• Seek professional help when needed
-      `,
-    },
-    {
-      title: "Privacy & Security",
-      content: `
-• Personal data is protected
-• Anonymous nicknames in communities
-• Mood data is private
-• No third-party data sharing
-      `,
-    },
+  const features = [
+    { title: "AI Chatbot", desc: "24/7 emotional support" },
+    { title: "Mood Tracking", desc: "Visualize your progress" },
+    { title: "Community", desc: "Connect with others" },
+    { title: "Guided Exercises", desc: "AI-powered routines" },
+    { title: "Voice Input", desc: "Hands-free interaction" },
+    { title: "Multi-language", desc: "Supports 4+ languages" }
+  ];
+
+  const guidelines = [
+    "Be respectful and supportive to all members",
+    "No harassment, bullying, or hate speech",
+    "Respect privacy - don't share personal information",
+    "No spam or promotional content",
+    "Seek professional help when needed",
+    "Report violations to moderators"
   ];
 
   return (
-    <div style={{ maxWidth: 900, margin: "0 auto", padding: 20, color: 'var(--text-primary)' }}>
-      <h1 style={{ textAlign: "center", marginBottom: 30 }}>
-        Help & Support
-      </h1>
+    <div className="help-container">
+      <div className="help-content">
+        <div className="help-header">
+          <h1><HelpCircle size={40} style={{ marginRight: '0.5rem', verticalAlign: 'middle' }} /> Help & Support</h1>
+          <p>Find answers to common questions and learn about our features</p>
+        </div>
 
-      {/* Tab Navigation */}
-      <div style={{ display: "flex", borderBottom: "2px solid var(--divider)", gap: 8 }}>
-        <button className={`tab-btn ${activeTab === 'faq' ? 'active' : ''}`} onClick={() => setActiveTab("faq")}>
-          FAQ
-        </button>
-        <button className={`tab-btn ${activeTab === 'about' ? 'active' : ''}`} onClick={() => setActiveTab("about")}>
-          About
-        </button>
-      </div>
+        <div className="help-tabs">
+          <button
+            className={`tab-btn ${activeTab === 'faq' ? 'active' : ''}`}
+            onClick={() => setActiveTab("faq")}
+          >
+            FAQ
+          </button>
+          <button
+            className={`tab-btn ${activeTab === 'about' ? 'active' : ''}`}
+            onClick={() => setActiveTab("about")}
+          >
+            About
+          </button>
+          <button
+            className={`tab-btn ${activeTab === 'features' ? 'active' : ''}`}
+            onClick={() => setActiveTab("features")}
+          >
+            Features
+          </button>
+          <button
+            className={`tab-btn ${activeTab === 'guidelines' ? 'active' : ''}`}
+            onClick={() => setActiveTab("guidelines")}
+          >
+            Guidelines
+          </button>
+        </div>
 
-      {/* Tab Content */}
-      <div style={{ marginTop: 20 }}>
-        {activeTab === "faq" ? (
-          <>
+        {activeTab === "faq" && (
+          <div className="help-section">
+            <h3><HelpCircle size={24} /> Frequently Asked Questions</h3>
             {faqs.map((faq, idx) => (
-              <div key={idx}>
+              <div key={idx} className="faq-item">
                 <strong>{faq.question}</strong>
                 <p>{faq.answer}</p>
               </div>
             ))}
-          </>
-        ) : (
+          </div>
+        )}
+
+        {activeTab === "about" && (
           <>
-            {aboutSections.map((section, idx) => (
-              <div key={idx}>
-                <h3>{section.title}</h3>
-                <p style={{ whiteSpace: "pre-wrap" }}>
-                  {section.content}
-                </p>
-              </div>
-            ))}
+            <div className="help-section">
+              <h3><Info size={24} /> About SnoRelax</h3>
+              <p>
+                SnoRelax is a mental wellness platform combining AI support, community connection, 
+                and mood tracking. Our mission is to make mental health support accessible, 
+                affordable, and stigma-free for everyone.
+              </p>
+            </div>
+
+            <div className="help-section">
+              <h3><BookOpen size={24} /> Our Mission</h3>
+              <p>
+                To create a safe, supportive space where people can manage their mental health, 
+                connect with understanding communities, and access AI-powered tools for better well-being.
+              </p>
+            </div>
+
+            <div className="help-section">
+              <h3><Phone size={24} /> Privacy & Security</h3>
+              <ul>
+                <li>Your personal data is protected and encrypted</li>
+                <li>Anonymous nicknames in community groups</li>
+                <li>Your mood data remains private</li>
+                <li>We never share your data with third parties</li>
+                <li>Secure authentication for all users</li>
+              </ul>
+            </div>
           </>
         )}
+
+        {activeTab === "features" && (
+          <div className="help-section">
+            <h3><BookOpen size={24} /> Key Features</h3>
+            <div className="features-grid">
+              {features.map((feature, idx) => (
+                <div key={idx} className="feature-card">
+                  <h4>{feature.title}</h4>
+                  <p>{feature.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {activeTab === "guidelines" && (
+          <div className="help-section">
+            <h3><MessageCircle size={24} /> Community Guidelines</h3>
+            <p>Please follow these guidelines to maintain a supportive environment:</p>
+            <ul>
+              {guidelines.map((item, idx) => (
+                <li key={idx}>{item}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <div className="help-section">
+          <h3><Mail size={24} /> Need More Help?</h3>
+          <p>
+            If you can't find the answer you're looking for, please reach out to us:
+          </p>
+          <div className="contact-info">
+            <div className="contact-item">
+              <Mail size={20} style={{ color: 'var(--accent-primary)' }} />
+              <span>support@snorelax.com</span>
+            </div>
+            <div className="contact-item">
+              <Phone size={20} style={{ color: 'var(--accent-primary)' }} />
+              <span>Emergency Hotline: 988 (Suicide & Crisis Lifeline)</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

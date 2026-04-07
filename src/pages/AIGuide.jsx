@@ -1,19 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import API_BASE from '../config/api.config';
-import { useNavigate } from 'react-router-dom';
-import '../styles/Chatbot.css';
+import { useNavigate } from "react-router-dom";
+import { Sparkles, Brain, Activity, Wind, Heart, X, ChevronRight, RefreshCw, Coffee } from "lucide-react";
+import "../styles/AIGuide.css";
 
-/**
- * AI Mood Guide
- * - Uses last 7 days of mood entries and recent chat messages
- * - Generates a concise, calm suggestion recommending ONE or TWO wellness categories
- * - Records simple accept/skip actions in localStorage to adapt next time
- */
 export default function AIGuide() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
-  const [categories, setCategories] = useState([]); // e.g. ['Breathing','Meditation']
+  const [categories, setCategories] = useState([]);
   const [lastAction, setLastAction] = useState(null);
+  const [showRoutineModal, setShowRoutineModal] = useState(false);
+  const [currentRoutine, setCurrentRoutine] = useState(null);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [countdown, setCountdown] = useState(0);
   const navigate = useNavigate();
 
   const userId =
@@ -23,7 +22,6 @@ export default function AIGuide() {
 
   useEffect(() => {
     generateGuide();
-    // read lastAction
     const la = localStorage.getItem('aiGuide_lastAction');
     if (la) setLastAction(la);
   }, []);
@@ -57,32 +55,28 @@ export default function AIGuide() {
     try {
       const [moods, messages] = await Promise.all([fetchMoods(), fetchMessages()]);
 
-      // keep only last 7 days' mood entries
       const now = Date.now();
       const sevenDaysAgo = now - 7 * 24 * 60 * 60 * 1000;
       const last7 = (moods || []).filter((m) => new Date(m.date).getTime() >= sevenDaysAgo);
 
       if (!last7 || last7.length === 0) {
-        setMessage('No mood records found for the past week. Try logging moods for clearer guidance.');
-        setCategories(['Breathing']);
+        setMessage('Start logging your mood to get personalized recommendations. Regular tracking helps us understand your patterns better.');
+        setCategories(['Breathing', 'Meditation']);
         return;
       }
 
       const values = last7.map((m) => Number(m.mood));
       const avg = values.reduce((s, x) => s + x, 0) / values.length;
 
-      // simple trend: compare average first half vs second half
       const mid = Math.floor(values.length / 2) || 1;
       const firstAvg = values.slice(0, mid).reduce((s, x) => s + x, 0) / Math.max(1, mid);
       const lastAvg = values.slice(mid).reduce((s, x) => s + x, 0) / Math.max(1, values.length - mid);
-      const trend = lastAvg - firstAvg; // positive = improving
+      const trend = lastAvg - firstAvg;
 
-      // fluctuation (std dev)
-      const mean = avg;
       const variance = values.reduce((s, x) => s + Math.pow(x - mean, 2), 0) / values.length;
       const stddev = Math.sqrt(variance);
+      const mean = avg;
 
-      // detect keywords in recent messages
       const text = messages.map((m) => (m.message || '')).join(' ').toLowerCase();
       const has = (arr) => arr.some((k) => text.includes(k));
       const stressKeywords = ['stress', 'stressed', 'anxiety', 'anxious', 'overwhelm'];
@@ -95,13 +89,12 @@ export default function AIGuide() {
       const anger = has(angerKeywords);
       const fatigue = has(fatigueKeywords);
 
-      // decide suggestion categories (max 2)
       let picks = [];
 
       if (stress || (trend < -0.3 && stddev > 0.8)) {
         picks = ['Breathing', 'Meditation'];
       } else if (fatigue) {
-        picks = ['Stretching', 'Exercise'];
+        picks = ['Exercise', 'Stretching'];
       } else if (sadness || trend < -0.3) {
         picks = ['Meditation', 'Breathing'];
       } else if (anger) {
@@ -109,95 +102,72 @@ export default function AIGuide() {
       } else if (stddev > 1.0) {
         picks = ['Breathing', 'Meditation'];
       } else {
-        // stable or improving
         picks = ['Breathing'];
       }
 
-      // adapt based on lastAction (if user repeatedly skips a category, deprioritize)
       const lastSkipped = localStorage.getItem('aiGuide_lastSkipped');
       if (lastSkipped) {
         picks = picks.filter((p) => p !== lastSkipped);
         if (picks.length === 0) picks = ['Breathing'];
       }
 
-      // build short message
       let lead = '';
-      if (stress) lead = 'Your stress-related messages and recent entries suggest higher stress this week.';
-      else if (fatigue) lead = 'Recent messages and mood entries suggest low energy.';
-      else if (sadness) lead = 'Recent entries show some sadness or low mood.';
-      else if (trend < -0.3) lead = 'Your mood trend has been slightly worse this week.';
-      else if (trend > 0.3) lead = 'Your mood trend appears to be improving.';
-      else if (stddev > 1.0) lead = 'There has been emotional fluctuation over the past week.';
-      else lead = 'Your mood has been fairly stable recently.';
+      if (stress) lead = 'Your recent conversations suggest elevated stress levels.';
+      else if (fatigue) lead = 'Your messages indicate feelings of low energy and fatigue.';
+      else if (sadness) lead = 'There are signs of sadness or low mood in your recent entries.';
+      else if (trend < -0.3) lead = 'Your mood has been trending downward this week.';
+      else if (trend > 0.3) lead = 'Great news! Your mood is showing positive improvement.';
+      else if (stddev > 1.0) lead = 'Your emotions have been fluctuating quite a bit lately.';
+      else lead = 'Your mood has been relatively stable recently.';
 
       const suggestionLine = picks.length === 1
-        ? `${picks[0]} sessions may help today.`
-        : `${picks[0]} or ${picks[1]} sessions may help today.`;
+        ? `${picks[0]} exercises could be particularly helpful today.`
+        : `${picks[0]} or ${picks[1]} exercises may benefit you today.`;
 
-      setMessage(`${lead} ${suggestionLine} You can choose any activity you prefer.`);
+      setMessage(`${lead} ${suggestionLine} Choose an activity that resonates with you.`);
       setCategories(picks.slice(0, 2));
     } catch (e) {
       console.error('Failed to generate guide:', e.message || e);
-      setMessage('Unable to generate a guide right now. Try again later.');
+      setMessage('Unable to generate personalized recommendations right now. Please try again later.');
       setCategories(['Breathing']);
     } finally {
       setLoading(false);
     }
   };
 
-  // --- Fixed sessions (do not generate new techniques) ---
-  const FIXED_SESSIONS = [
-    {
-      id: 'quick-bodyweight',
-      title: 'Quick Bodyweight Circuit',
-      type: 'exercise',
-      durationMinutes: 12,
-      steps: ['Jumping jacks - 1 min','Bodyweight squats - 1 min','Push-ups (knees ok) - 1 min','Plank - 45s','Rest 30s and repeat 2x']
-    },
-    {
-      id: 'morning-mobility',
-      title: 'Morning Mobility',
-      type: 'yoga',
-      durationMinutes: 8,
-      steps: ['Neck circles - 30s','Shoulder rolls - 30s','Hip circles - 1 min','Sun salutations x3 - 5 min']
-    },
-    {
-      id: 'evening-stretch',
-      title: 'Evening Stretch & Wind-down',
-      type: 'lifestyle',
-      durationMinutes: 12,
-      steps: ['Gentle neck rolls - 1 min','Seated forward fold - 2 min','Legs up the wall - 5 min','Deep breathing - 4 min']
-    }
-  ];
-
-  const [showRoutineModal, setShowRoutineModal] = useState(false);
-  const [currentRoutine, setCurrentRoutine] = useState(null);
-  const [currentStep, setCurrentStep] = useState(0);
-  const [countdown, setCountdown] = useState(0);
-  const stepTimerRef = React.useRef(null);
-
-  const parseDurationSeconds = (text, fallbackTotalMinutes) => {
-    const min = text.match(/(\d+)\s*min/);
-    if (min) return parseInt(min[1], 10) * 60;
-
-    const sec = text.match(/(\d+)\s*s(ec)?/);
-    if (sec) return parseInt(sec[1], 10);
-
-    // If step doesn't have duration, distribute equally from total
-    if (fallbackTotalMinutes) {
-      return Math.max(10, Math.floor((fallbackTotalMinutes * 60) /  Math.max(1, currentRoutine?.steps?.length || 1)));
-    }
-
-    return 30; // default small step
+  const SESSIONS = {
+    Breathing: [
+      { id: 'box-breathing', title: 'Box Breathing', duration: '4 min', steps: ['Inhale for 4 seconds', 'Hold for 4 seconds', 'Exhale for 4 seconds', 'Hold for 4 seconds', 'Repeat 6 times'] },
+      { id: '4-7-8', title: '4-7-8 Relaxation', duration: '5 min', steps: ['Inhale quietly through nose for 4 seconds', 'Hold breath for 7 seconds', 'Exhale completely through mouth for 8 seconds', 'Repeat 4 times'] },
+    ],
+    Meditation: [
+      { id: 'body-scan', title: 'Body Scan', duration: '6 min', steps: ['Close eyes and relax', 'Focus attention on toes', 'Slowly move awareness up through body', 'Notice any tension and breathe into it', 'Release tension as you exhale'] },
+      { id: 'mindful-breathing', title: 'Mindful Breathing', duration: '5 min', steps: ['Sit comfortably', 'Focus on natural breath', 'Notice the sensation of breathing', 'When mind wanders, gently return focus', 'End with 3 deep breaths'] },
+    ],
+    Exercise: [
+      { id: 'quick-circuit', title: 'Quick Energy Boost', duration: '8 min', steps: ['Jumping jacks - 1 min', 'Bodyweight squats - 2 min', 'Push-ups - 2 min', 'Plank hold - 1 min', 'Cool down stretches - 2 min'] },
+    ],
+    Stretching: [
+      { id: 'morning-stretch', title: 'Morning Stretch', duration: '6 min', steps: ['Neck rolls - 30s', 'Shoulder stretches - 1 min', 'Side stretches - 1 min', 'Forward fold - 1 min', 'Hip circles - 1 min', 'Ankle rotations - 30s'] },
+    ],
   };
 
-  const openRoutine = (sessionId) => {
-    const s = FIXED_SESSIONS.find(s => s.id === sessionId);
-    if (!s) return;
-    setCurrentRoutine(s);
+  const stepTimerRef = React.useRef(null);
+
+  const parseDurationSeconds = (text) => {
+    const min = text.match(/(\d+)\s*min/);
+    if (min) return parseInt(min[1], 10) * 60;
+    const sec = text.match(/(\d+)\s*s(ec)?/);
+    if (sec) return parseInt(sec[1], 10);
+    return 30;
+  };
+
+  const openRoutine = (category) => {
+    const routines = SESSIONS[category] || SESSIONS['Breathing'];
+    const session = routines[0];
+    setCurrentRoutine(session);
     setCurrentStep(0);
-    // initial countdown for step 0
-    const d = parseDurationSeconds(s.steps[0] || '', s.durationMinutes);
+    const d = parseDurationSeconds(session.steps[0]);
     setCountdown(d);
     setShowRoutineModal(true);
 
@@ -218,44 +188,28 @@ export default function AIGuide() {
     setCountdown(0);
   };
 
-  // advance to next step when countdown hits 0
   useEffect(() => {
     if (!currentRoutine) return;
     if (countdown === 0) {
       const next = currentStep + 1;
       if (next < (currentRoutine.steps || []).length) {
         setCurrentStep(next);
-        const d = parseDurationSeconds(currentRoutine.steps[next] || '', currentRoutine.durationMinutes);
+        const d = parseDurationSeconds(currentRoutine.steps[next]);
         setCountdown(d);
       } else {
-        // routine complete
         stopRoutine();
       }
     }
   }, [countdown, currentRoutine, currentStep]);
 
   const handleAccept = (category) => {
-    // record acceptance so future suggestions can adapt
     localStorage.setItem('aiGuide_lastAction', 'accepted');
     localStorage.setItem('aiGuide_lastAccepted', category);
     setLastAction('accepted');
-
-    // If user chose Exercise, open a default exercise session popup (use fixed sessions)
-    if (category === 'Exercise') {
-      // choose first exercise session from FIXED_SESSIONS
-      const s = FIXED_SESSIONS.find(ss => ss.type === 'exercise');
-      if (s) {
-        openRoutine(s.id);
-        return;
-      }
-    }
-
-    // default navigate to health vault where fixed sessions exist
-    navigate(`/health-vault?category=${encodeURIComponent(category)}`);
+    openRoutine(category);
   };
 
   const handleSkip = () => {
-    // record last skipped category
     if (categories && categories.length) {
       localStorage.setItem('aiGuide_lastSkipped', categories[0]);
     }
@@ -263,67 +217,140 @@ export default function AIGuide() {
     setLastAction('skipped');
   };
 
+  const getCategoryIcon = (category) => {
+    switch(category) {
+      case 'Breathing': return <Wind size={20} />;
+      case 'Meditation': return <Brain size={20} />;
+      case 'Exercise': return <Activity size={20} />;
+      case 'Stretching': return <Heart size={20} />;
+      default: return <Sparkles size={20} />;
+    }
+  };
+
   return (
-    <div style={{ padding: 16 }}>
-      <h1>AI Mood Guide</h1>
+    <div className="ai-guide-container">
+      <div className="ai-guide-header">
+        <button className="back-btn" onClick={() => navigate(-1)}>
+          ← Back
+        </button>
+        <h1><Sparkles size={24} /> AI Wellness Guide</h1>
+      </div>
 
-      {loading && <p>Checking your recent mood data...</p>}
-
-      {!loading && (
-        <div style={{ padding: 12, background: 'var(--bg-secondary)', borderRadius: 8 }}>
-          <p style={{ margin: 0 }}>{message}</p>
-
-          {categories && categories.length > 0 && (
-            <div style={{ marginTop: 10 }}>
-              {categories.map((c) => (
-                <button
-                  key={c}
-                  style={{ marginRight: 8 }}
-                  onClick={() => handleAccept(c)}
-                >
-                  Try {c}
-                </button>
-              ))}
-
-              <button onClick={handleSkip} style={{ marginLeft: 6 }}>
-                Skip for now
-              </button>
+      <div className="ai-guide-content">
+        {/* Main Card */}
+        <div className="guide-card">
+          <div className="guide-icon">
+            <Brain size={40} />
+          </div>
+          <h2>Your Personalized Recommendations</h2>
+          
+          {loading ? (
+            <div className="loading-state">
+              <div className="spinner"></div>
+              <p>Analyzing your mood patterns...</p>
             </div>
-          )}
+          ) : (
+            <>
+              <p className="guide-message">{message}</p>
 
-          {lastAction && (
-            <p style={{ marginTop: 8, fontSize: 13, color: 'var(--text-secondary)' }}>
-              Last action recorded: {lastAction}.
-            </p>
+              {categories.length > 0 && (
+                <div className="category-options">
+                  <p className="options-label">Recommended activities:</p>
+                  <div className="options-grid">
+                    {categories.map((cat) => (
+                      <button
+                        key={cat}
+                        className="category-btn"
+                        onClick={() => handleAccept(cat)}
+                      >
+                        {getCategoryIcon(cat)}
+                        <span>{cat}</span>
+                        <ChevronRight size={16} />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="guide-actions">
+                <button className="btn btn-secondary" onClick={handleSkip}>
+                  Skip for now
+                </button>
+                <button className="btn btn-icon" onClick={generateGuide} disabled={loading}>
+                  <RefreshCw size={18} />
+                </button>
+              </div>
+
+              {lastAction && (
+                <p className="last-action">
+                  Previous action: {lastAction === 'accepted' ? 'Started activity' : 'Skipped'}
+                </p>
+              )}
+            </>
           )}
         </div>
-      )}
+
+        {/* Quick Tips */}
+        <div className="tips-section">
+          <h3>Daily Wellness Tips</h3>
+          <div className="tips-grid">
+            <div className="tip-card">
+              <Coffee size={24} />
+              <p>Take regular breaks throughout the day</p>
+            </div>
+            <div className="tip-card">
+              <Wind size={24} />
+              <p>Practice deep breathing when feeling anxious</p>
+            </div>
+            <div className="tip-card">
+              <Heart size={24} />
+              <p>Stay connected with supportive people</p>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Routine Modal */}
       {showRoutineModal && currentRoutine && (
-        <div style={{ position: 'fixed', left: 0, top: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
-          <div style={{ background: 'white', borderRadius: 8, padding: 16, maxWidth: 560, width: '95%' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={{ margin: 0 }}>{currentRoutine.title}</h3>
-              <div>
-                <strong>{currentRoutine.durationMinutes} min</strong>
+        <div className="routine-modal">
+          <div className="routine-content">
+            <button className="close-btn" onClick={stopRoutine}>
+              <X size={24} />
+            </button>
+            
+            <div className="routine-header">
+              <h2>{currentRoutine.title}</h2>
+              <span className="routine-duration">{currentRoutine.duration}</span>
+            </div>
+
+            <div className="routine-progress">
+              <span>Step {currentStep + 1} of {currentRoutine.steps.length}</span>
+              <div className="progress-bar">
+                <div 
+                  className="progress-fill" 
+                  style={{ width: `${((currentStep + 1) / currentRoutine.steps.length) * 100}%` }}
+                />
               </div>
             </div>
 
-            <div style={{ marginTop: 12 }}>
-              <p style={{ margin: 0, fontSize: 13, color: 'var(--text-primary)' }}>Step {currentStep + 1} / {currentRoutine.steps.length}</p>
-              <p style={{ marginTop: 8 }}>{currentRoutine.steps[currentStep]}</p>
-              <p style={{ fontWeight: 700, fontSize: 20 }}>{Math.floor(countdown/60).toString().padStart(2,'0')}:{String(countdown%60).padStart(2,'0')}</p>
+            <div className="current-step">
+              <p>{currentRoutine.steps[currentStep]}</p>
+            </div>
 
-              <div style={{ marginTop: 12, display: 'flex', gap: 8 }}>
-                <button onClick={() => setCountdown(0)} style={{ padding: '8px 16px' }}>Next</button>
-                <button onClick={stopRoutine} className="btn-danger">Stop</button>
-              </div>
+            <div className="timer-display">
+              <span className="timer-value">
+                {Math.floor(countdown / 60).toString().padStart(2, '0')}:
+                {String(countdown % 60).padStart(2, '0')}
+              </span>
+            </div>
 
-              <div style={{ marginTop: 12 }}>
-                <p style={{ margin: 0, fontSize: 13, color: 'var(--text-secondary)' }}>Follow the step instructions above. The session will advance automatically when each step's time completes.</p>
-              </div>
-
+            <div className="routine-controls">
+              <button className="btn btn-primary" onClick={() => setCountdown(0)}>
+                Next Step
+              </button>
+              <button className="btn btn-secondary" onClick={stopRoutine}>
+                Stop
+              </button>
             </div>
           </div>
         </div>

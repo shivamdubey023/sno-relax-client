@@ -5,7 +5,7 @@
 /* Centered container */
 .login-container {
   width: 100%;
-  max-width: 1200px;
+  max-width: 100%;
   margin: auto;
   display: flex;
   justify-content: center;
@@ -13,42 +13,60 @@
   padding: clamp(0.5rem, 2vw, 2rem);
   position: relative;
   min-height: 100vh;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* Overlay for better readability */
+.login-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(11, 39, 64, 0.85) 0%, rgba(17, 43, 70, 0.75) 50%, rgba(0, 255, 102, 0.1) 100%);
+  z-index: 0;
 }
 
 /* Login card */
 .login-box {
-  background: var(--bg-secondary);
+  background: rgba(11, 39, 64, 0.9);
   padding: clamp(1rem, 3vw, 2.5rem);
   border-radius: clamp(12px, 2vw, 24px);
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 0 40px rgba(0, 255, 102, 0.1);
   text-align: center;
   width: 100%;
   max-width: clamp(280px, 90vw, 450px);
   animation: fadeIn 1.2s ease-in-out;
-  backdrop-filter: blur(5px);
-  border: 1px solid var(--border-color);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 255, 102, 0.3);
   transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  position: relative;
+  z-index: 1;
 }
 
 /* Title & subtitle */
 .site-title {
   font-size: clamp(1.4rem, 4vw, 2.5rem);
   margin-bottom: 0.5rem;
-  color: var(--accent-primary);
+  color: #00FF66;
   transition: color 0.3s ease;
+  text-shadow: 0 0 20px rgba(0, 255, 102, 0.5);
 }
 
 .city-info {
   margin-bottom: 1rem;
   font-size: clamp(0.75rem, 2vw, 1rem);
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.9);
   transition: color 0.3s ease;
 }
 
 .subtitle {
   font-size: clamp(0.8rem, 1.8vw, 1rem);
   font-style: italic;
-  color: var(--text-secondary);
+  color: rgba(255, 255, 255, 0.8);
   margin-bottom: 1.25rem;
   transition: color 0.3s ease;
 }
@@ -59,8 +77,8 @@
   margin-bottom: 1.5rem;
   border-radius: 10px;
   overflow: hidden;
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-color);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(0, 255, 102, 0.2);
 }
 
 .tab-button {
@@ -68,7 +86,7 @@
   padding: clamp(10px, 2vw, 14px);
   border: none;
   background: transparent;
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.7);
   font-size: clamp(0.85rem, 1.8vw, 1rem);
   font-weight: 500;
   cursor: pointer;
@@ -76,13 +94,13 @@
 }
 
 .tab-button.active {
-  background: var(--accent-primary);
-  color: white;
+  background: linear-gradient(135deg, #00FF66 0%, #00D07A 100%);
+  color: #0b2740;
 }
 
 .tab-button:hover:not(.active) {
-  background: var(--bg-secondary);
-  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
 }
 
 /* Form */
@@ -96,44 +114,45 @@ form {
 input {
   width: 100%;
   padding: clamp(10px, 2.5vw, 14px);
-  border: 1px solid var(--border-color);
+  border: 1px solid rgba(0, 255, 102, 0.3);
   border-radius: 10px;
-  background: var(--bg-tertiary);
-  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.95);
+  color: #0b2740;
   font-size: clamp(0.8rem, 1.8vw, 0.95rem);
   box-sizing: border-box;
   transition: box-shadow 0.25s, background 0.25s, border-color 0.25s;
 }
 
 input::placeholder {
-  color: var(--text-muted);
+  color: rgba(11, 39, 64, 0.6);
 }
 
 input:focus-visible {
   outline: none;
-  box-shadow: 0 0 10px var(--accent-primary);
-  background: var(--bg-secondary);
-  border-color: var(--accent-primary);
+  box-shadow: 0 0 15px rgba(0, 255, 102, 0.5);
+  background: rgba(255, 255, 255, 1);
+  border-color: #00FF66;
 }
 
 /* Button */
 button[type="submit"] {
   width: 100%;
   padding: clamp(11px, 2.5vw, 14px);
-  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  background: linear-gradient(135deg, #00FF66, #00D07A);
   border: none;
   border-radius: 10px;
   font-weight: 600;
-  color: white;
+  color: #0b2740;
   font-size: clamp(0.9rem, 2vw, 1.1rem);
   cursor: pointer;
   transition: transform 0.2s, box-shadow 0.3s, opacity 0.2s;
   transform-origin: center;
+  box-shadow: 0 4px 15px rgba(0, 255, 102, 0.3);
 }
 
 button[type="submit"]:hover:not(:disabled) {
   transform: scale(1.02);
-  box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+  box-shadow: 0 6px 20px rgba(0, 255, 102, 0.5);
 }
 
 button[type="submit"]:active:not(:disabled) {
@@ -149,11 +168,11 @@ button[type="submit"]:disabled {
 .error-message {
   margin-top: 1rem;
   font-size: clamp(0.75rem, 1.8vw, 0.9rem);
-  color: var(--error);
-  background: rgba(239, 68, 68, 0.1);
+  color: #ff6b6b;
+  background: rgba(255, 107, 107, 0.1);
   padding: clamp(0.5rem, 1vw, 0.75rem);
   border-radius: 8px;
-  border-left: 3px solid var(--error);
+  border-left: 3px solid #ff6b6b;
   text-align: left;
   transition: background-color 0.3s ease, color 0.3s ease;
 }

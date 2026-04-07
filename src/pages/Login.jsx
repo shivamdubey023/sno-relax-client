@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/Login.css";
+import loginImg from "../img/login.jpg";
 
 export default function Login({ onLogin }) {
   const navigate = useNavigate();
@@ -173,7 +174,7 @@ export default function Login({ onLogin }) {
   };
 
   return (
-    <div className="login-container">
+    <div className="login-container" style={{ backgroundImage: `url(${loginImg})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
       <div className="login-box">
         <h1 className="site-title">🌙 SnoRelax</h1>
         <p className="city-info">📍 Your City: {city || "Detecting..."}</p>

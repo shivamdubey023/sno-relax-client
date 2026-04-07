@@ -3,10 +3,10 @@ import React, { useEffect, useState, useRef } from "react";
 import { API_ENDPOINTS, SOCKET_URL } from "../config/api.config";
 import { io } from "socket.io-client";
 import { useNavigate } from 'react-router-dom';
+import { Users, Plus, X, MessageCircle, Send, LogOut, LogIn, Hash } from "lucide-react";
 import "../styles/Community.css";
 
 export default function CommunityPage() {
-  // ---- User identity handling (safe + consistent) ----
   const storedUserId =
     localStorage.getItem("userId") ||
     localStorage.getItem("sno_userId") ||
@@ -14,23 +14,13 @@ export default function CommunityPage() {
     null;
 
   const [currentUserId, setCurrentUserId] = useState(storedUserId);
-  const userRole = localStorage.getItem("userRole") || "user";
-  const isLoggedIn = !!currentUserId;
-  const navigate = useNavigate();
-
-  // ---- UI: hamburger/menu for groups (mobile/top) ----
-  // Start CLOSED by default for mobile-first behavior
-  const [menuOpen, setMenuOpen] = useState(false); // controls sidebar visibility
-
-  // ---- Core state ----
+  const [menuOpen, setMenuOpen] = useState(false);
   const [groups, setGroups] = useState([]);
   const [selectedGroup, setSelectedGroup] = useState(null);
   const [messages, setMessages] = useState([]);
   const [groupMembers, setGroupMembers] = useState([]);
   const [msgInput, setMsgInput] = useState("");
   const [loading, setLoading] = useState(false);
-
-  // ---- UI state ----
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [groupName, setGroupName] = useState("");
   const [groupDesc, setGroupDesc] = useState("");
@@ -41,15 +31,11 @@ export default function CommunityPage() {
   const [showViolationPopup, setShowViolationPopup] = useState(
     !localStorage.getItem("communityPolicyAccepted")
   );
-
-  // ---- Refs ----
   const messagesEndRef = useRef(null);
   const inputAreaRef = useRef(null);
   const msgInputRef = useRef(null);
   const socketRef = useRef(null);
-  const [messagesMaxHeight, setMessagesMaxHeight] = useState("auto");
 
-  // Auto-resize textarea for a comfortable typing area
   useEffect(() => {
     if (msgInputRef.current) {
       msgInputRef.current.style.height = "auto";
@@ -57,7 +43,6 @@ export default function CommunityPage() {
     }
   }, [msgInput]);
 
-  // Keyboard shortcut: Ctrl/Cmd + Enter to send message
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
       e.preventDefault();
@@ -65,64 +50,14 @@ export default function CommunityPage() {
     }
   };
 
-  // ---- Initial group load ----
   useEffect(() => {
     loadGroups();
   }, []);
 
-  // ---- Auto scroll ----
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // ---- Responsive message height ----
-  useEffect(() => {
-    const updateHeight = () => {
-      try {
-        const inputH = inputAreaRef.current?.offsetHeight || 0;
-        const h = window.innerHeight - inputH - 16;
-        setMessagesMaxHeight(h > 200 ? `${h}px` : "200px");
-      } catch {
-        setMessagesMaxHeight("auto");
-      }
-    };
-    updateHeight();
-    window.addEventListener("resize", updateHeight);
-    return () => window.removeEventListener("resize", updateHeight);
-  }, [selectedGroup]);
-
-  // ---- Socket setup (only for members) ----
-  useEffect(() => {
-    const member = selectedGroup && groupMembers.some((m) => m.userId === currentUserId);
-    if (!selectedGroup || !currentUserId || !member) return;
-
-    const socket = io(SOCKET_URL, {
-      transports: ["websocket", "polling"],
-      reconnection: true,
-    });
-
-    socketRef.current = socket;
-    socket.emit("joinGroup", selectedGroup._id);
-
-    socket.on("receiveGroupMessage", (msg) => {
-      if (String(msg.groupId) !== String(selectedGroup._id)) return;
-      setMessages((prev) =>
-        prev.some((m) => String(m._id) === String(msg._id))
-          ? prev
-          : [...prev, msg]
-      );
-    });
-
-    return () => {
-      try {
-        socket.emit("leaveGroup", selectedGroup._id);
-      } catch {}
-      socket.disconnect();
-      socketRef.current = null;
-    };
-  }, [selectedGroup, currentUserId, groupMembers]);
-
-  // ---- Load members on group select and only load messages for members ----
   useEffect(() => {
     if (!selectedGroup) return;
     (async () => {
@@ -132,13 +67,11 @@ export default function CommunityPage() {
       if (member) {
         await loadMessages();
       } else {
-        // Ensure messages are cleared for non-members
         setMessages([]);
       }
     })();
   }, [selectedGroup]);
 
-  // ---- Polling fallback ----
   useEffect(() => {
     if (!selectedGroup) return;
     let mounted = true;
@@ -147,14 +80,13 @@ export default function CommunityPage() {
       if (inputAreaRef.current?.contains(active)) return;
       if (!mounted) return;
       await loadMessages();
-    }, 1000);
+    }, 5000);
     return () => {
       mounted = false;
       clearInterval(id);
     };
   }, [selectedGroup]);
 
-  // ---- API helpers ----
   const loadGroups = async () => {
     try {
       const res = await fetch(API_ENDPOINTS.COMMUNITY.GET_GROUPS, {
@@ -199,7 +131,6 @@ export default function CommunityPage() {
     }
   };
 
-  // ---- Membership helpers ----
   const ensureUserId = () => {
     if (currentUserId) return currentUserId;
     const id = `u_${Math.random().toString(36).slice(2, 9)}`;
@@ -208,24 +139,20 @@ export default function CommunityPage() {
     return id;
   };
 
-  // ---- Group actions ----
   const joinGroup = async (groupId) => {
     const uid = ensureUserId();
     let inviteCode = null;
-
     const group = groups.find((g) => g._id === groupId);
     if (group?.isPrivate) {
       inviteCode = window.prompt("Enter invite code:");
       if (!inviteCode) return;
     }
-
     const res = await fetch(API_ENDPOINTS.COMMUNITY.JOIN_GROUP(groupId), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
       body: JSON.stringify({ userId: uid, nickname, inviteCode }),
     });
-
     if (res.ok) {
       const updated = await loadGroups();
       await loadGroupMembers();
@@ -250,25 +177,9 @@ export default function CommunityPage() {
   const sendMessage = async (e) => {
     e.preventDefault();
     if (!msgInput.trim() || !selectedGroup) return;
-
     const uid = ensureUserId();
     setLoading(true);
-
     try {
-      // Prefer socket when available to get real-time broadcast via server socket
-      if (socketRef.current && socketRef.current.connected) {
-        socketRef.current.emit("sendGroupMessage", {
-          groupId: selectedGroup._id || selectedGroup.id,
-          senderId: uid,
-          senderNickname: nickname,
-          message: msgInput,
-        });
-        // optimistic clear; server will broadcast message back
-        setMsgInput("");
-        return;
-      }
-
-      // Fallback to HTTP POST if sockets unavailable
       const res = await fetch(
         API_ENDPOINTS.COMMUNITY.POST_GROUP_MESSAGE(selectedGroup._id),
         {
@@ -293,39 +204,39 @@ export default function CommunityPage() {
     }
   };
 
-  const isMember =
-    selectedGroup &&
-    groupMembers.some((m) => m.userId === currentUserId);
+  const isMember = selectedGroup && groupMembers.some((m) => m.userId === currentUserId);
 
-  // ---- JSX ----
   return (
     <div className="community-page">
-      {/* Sidebar: Groups */}
-      {/* Mobile hamburger in top-left */}
+      {/* Mobile topbar */}
       <div className="community-topbar">
-        <button className="hamburger" onClick={() => setMenuOpen((s) => !s)} aria-label="Toggle groups">☰</button>
-        <div className="topbar-title">Community</div>
+        <button className="hamburger" onClick={() => setMenuOpen((s) => !s)}>
+          {menuOpen ? <X size={24} /> : <Hash size={24} />}
+        </button>
+        <span className="topbar-title">Community</span>
       </div>
 
-      {/* Sidebar: Groups (toggleable via hamburger) */}
+      {/* Sidebar */}
       <aside className={`community-sidebar ${menuOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
-          <h2>Communities</h2>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <button
-              className="create-btn"
-              title="Create group"
-              onClick={() => setShowCreateModal(true)}
-            >
-              +
+          <h2><Users size={20} /> Communities</h2>
+          <div className="sidebar-actions">
+            <button className="create-btn" onClick={() => setShowCreateModal(true)} title="Create group">
+              <Plus size={20} />
             </button>
-            <button className="close-sidebar" onClick={() => setMenuOpen(false)} aria-label="Close groups">✕</button>
+            <button className="close-sidebar" onClick={() => setMenuOpen(false)}>
+              <X size={18} />
+            </button>
           </div>
         </div>
 
         <div className="groups-list">
           {groups.length === 0 ? (
-            <div className="muted-text" style={{ padding: 16 }}>No groups found.</div>
+            <div className="empty-groups">
+              <Hash size={40} />
+              <p>No groups yet</p>
+              <span>Create one to get started</span>
+            </div>
           ) : (
             groups.map((g) => {
               const gid = g._id || g.id;
@@ -337,8 +248,8 @@ export default function CommunityPage() {
                   onClick={() => { setSelectedGroup(g); setMenuOpen(false); }}
                 >
                   <div className="group-info">
-                    <h4>{g.name}</h4>
-                    <p>{g.description || `${g.memberCount || (g.members && g.members.length) || 0} members`}</p>
+                    <h4><Hash size={14} /> {g.name}</h4>
+                    <p>{g.description || `${g.memberCount || 0} members`}</p>
                   </div>
                 </div>
               );
@@ -351,34 +262,25 @@ export default function CommunityPage() {
       <main className="community-main">
         {!selectedGroup ? (
           <div className="no-selection">
-            <div>
-              <h3>Select a group to join the conversation</h3>
-              <p>Join a group or create a new one to start talking with others.</p>
-            </div>
+            <MessageCircle size={80} />
+            <h3>Welcome to Community</h3>
+            <p>Select a group to join the conversation</p>
           </div>
         ) : (
           <>
             <div className="chat-header-comm">
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <button onClick={() => navigate('/dashboard')} className="back-btn" aria-label="Back to Dashboard">← Back</button>
-                <div className="header-info">
-                </div>
+              <div className="chat-info">
+                <h3><Hash size={18} /> {selectedGroup.name}</h3>
+                <p>{selectedGroup.description}</p>
               </div>
-
               <div className="header-actions">
                 {isMember ? (
-                  <button
-                    className="leave-btn"
-                    onClick={() => leaveGroup(selectedGroup._id || selectedGroup.id)}
-                  >
-                    Leave
+                  <button className="leave-btn" onClick={() => leaveGroup(selectedGroup._id || selectedGroup.id)}>
+                    <LogOut size={16} /> Leave
                   </button>
                 ) : (
-                  <button
-                    className="join-btn"
-                    onClick={() => joinGroup(selectedGroup._id || selectedGroup.id)}
-                  >
-                    Join
+                  <button className="join-btn" onClick={() => joinGroup(selectedGroup._id || selectedGroup.id)}>
+                    <LogIn size={16} /> Join
                   </button>
                 )}
               </div>
@@ -386,12 +288,13 @@ export default function CommunityPage() {
 
             {isMember ? (
               <>
-                <div
-                  className="messages-container"
-                  style={{ maxHeight: messagesMaxHeight, minHeight: 200 }}
-                >
+                <div className="messages-container">
                   {messages.length === 0 ? (
-                    <div className="muted-text" style={{ padding: 16 }}>No messages yet.</div>
+                    <div className="empty-messages">
+                      <MessageCircle size={40} />
+                      <p>No messages yet</p>
+                      <span>Be the first to say hello!</span>
+                    </div>
                   ) : (
                     messages.map((m) => {
                       const mid = m._id || m.id;
@@ -399,12 +302,12 @@ export default function CommunityPage() {
                       return (
                         <div key={mid} className={`message-item ${own ? 'own' : ''}`}>
                           <div className="msg-bubble">
-                            <div className="msg-sender">{m.senderNickname || m.senderId}</div>
+                            <div className="msg-sender">{m.senderNickname || 'Anonymous'}</div>
                             <div className="msg-text">{m.message || m.text}</div>
-                            <div className="edited">
-                              {m.isEdited ? 'edited' : ''}
+                            <div className="msg-meta">
+                              {m.isEdited && <span className="edited">edited</span>}
                               <span className="msg-timestamp">
-                                {new Date(m.createdAt || m.date || Date.now()).toLocaleString()}
+                                {new Date(m.createdAt || m.date || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                               </span>
                             </div>
                           </div>
@@ -412,61 +315,76 @@ export default function CommunityPage() {
                       );
                     })
                   )}
-
                   <div ref={messagesEndRef} />
                 </div>
 
-                <div className="msg-input-area" ref={inputAreaRef}>
-                  <div className="nickname-display">You are: <strong>{nickname}</strong></div>
+                <div className="msg-input-area">
+                  <div className="nickname-display">
+                    Posting as: <strong>{nickname}</strong>
+                  </div>
                   <form onSubmit={sendMessage}>
-                    <input
+                    <textarea
                       ref={msgInputRef}
-                      className="msg-input chat-input"
+                      className="msg-input"
                       value={msgInput}
                       onChange={(e) => setMsgInput(e.target.value)}
-                      onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); sendMessage(e); } }}
-                      placeholder={isMember ? 'Write a message' : 'Join the group to send messages.'}
+                      onKeyDown={handleKeyDown}
+                      placeholder="Write a message (Ctrl+Enter to send)"
                       disabled={!isMember || loading}
                     />
-                    <button className="msg-send" type="submit" disabled={loading || !isMember} aria-label="Send message">
-                      {loading ? '...' : '➤'}
+                    <button className="msg-send" type="submit" disabled={loading || !isMember || !msgInput.trim()}>
+                      <Send size={20} />
                     </button>
                   </form>
                 </div>
               </>
             ) : (
-                <div className="muted-text" style={{ padding: 20 }}>
-                <p style={{ margin: 0 }}>
-                  You are not a member of this group. Join the group to view the chat and participate.
-                </p>
-                <div style={{ marginTop: 12 }}>
-                  <button
-                    className="join-btn"
-                    onClick={() => joinGroup(selectedGroup._id || selectedGroup.id)}
-                  >
-                    Join
-                  </button>
-                </div>
+              <div className="join-prompt">
+                <MessageCircle size={60} />
+                <h3>Join this Community</h3>
+                <p>Join the group to view messages and participate in the conversation.</p>
+                <button className="join-btn large" onClick={() => joinGroup(selectedGroup._id || selectedGroup.id)}>
+                  <LogIn size={20} /> Join Group
+                </button>
               </div>
             )}
           </>
         )}
       </main>
 
-      {/* Create Group Modal */}
+      {/* Create Modal */}
       {showCreateModal && (
         <div className="modal-overlay" onClick={() => setShowCreateModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h3>Create Group</h3>
-            <input value={groupName} onChange={(e) => setGroupName(e.target.value)} placeholder="Group name" />
-            <textarea value={groupDesc} onChange={(e) => setGroupDesc(e.target.value)} placeholder="Description" />
-            <label style={{ display: 'block', marginBottom: 12 }}>
-              <input type="checkbox" checked={groupIsPrivate} onChange={(e) => setGroupIsPrivate(e.target.checked)} /> Private
+            <div className="modal-header">
+              <h3>Create Community</h3>
+              <button className="modal-close" onClick={() => setShowCreateModal(false)}>
+                <X size={20} />
+              </button>
+            </div>
+            <input 
+              value={groupName} 
+              onChange={(e) => setGroupName(e.target.value)} 
+              placeholder="Community name"
+            />
+            <textarea 
+              value={groupDesc} 
+              onChange={(e) => setGroupDesc(e.target.value)} 
+              placeholder="Description (optional)"
+            />
+            <label className="checkbox-label">
+              <input 
+                type="checkbox" 
+                checked={groupIsPrivate} 
+                onChange={(e) => setGroupIsPrivate(e.target.checked)} 
+              />
+              <span>Private community (requires invite code)</span>
             </label>
             <div className="modal-buttons">
               <button type="button" onClick={() => setShowCreateModal(false)}>Cancel</button>
               <button
                 type="button"
+                className="btn-primary"
                 onClick={async () => {
                   const createdBy = ensureUserId();
                   try {
@@ -505,12 +423,17 @@ export default function CommunityPage() {
         <div className="violation-modal" onClick={() => { setShowViolationPopup(false); localStorage.setItem('communityPolicyAccepted','1'); }}>
           <div className="violation-content" onClick={(e) => e.stopPropagation()}>
             <h2>Community Guidelines</h2>
-            <p>Please be kind and follow the community rules before posting.</p>
-            <button onClick={() => { setShowViolationPopup(false); localStorage.setItem('communityPolicyAccepted','1'); }}>I Agree</button>
+            <p>Please be kind, respectful, and follow these guidelines:</p>
+            <ul>
+              <li>Be supportive and encouraging</li>
+              <li>Respect privacy and confidentiality</li>
+              <li>No harassment or bullying</li>
+              <li>Report inappropriate behavior</li>
+            </ul>
+            <button>I Understand & Agree</button>
           </div>
         </div>
       )}
-
     </div>
   );
 }

@@ -79,10 +79,11 @@ export default function NoticeBoard() {
             borderRadius: 8,
             background: "#fff",
             marginBottom: 8,
+            color: "black",
           }}
         >
           <div style={{ fontWeight: 700 }}>{a.title}</div>
-          <div style={{ color: "#444" }}>{a.description}</div>
+          <div style={{ color: "black" }}>{a.description}</div>
 
           {a.location && (
             <div style={{ fontSize: 12, color: "#666" }}>
