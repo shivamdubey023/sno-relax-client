@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { Upload, FileText, Clock, AlertCircle, CheckCircle } from "lucide-react";
+import BackButton from "../components/BackButton";
 import "../styles/Reports.css";
 
 export default function Reports() {
@@ -122,9 +123,7 @@ export default function Reports() {
   return (
     <div className="reports-container">
       <div className="reports-header">
-        <button className="back-btn" onClick={() => navigate("/profile")}>
-          ← Back
-        </button>
+        <BackButton to="/profile" variant="ghost" label="Back" className="reports-back-btn" />
         <h1>Medical Reports</h1>
       </div>
 

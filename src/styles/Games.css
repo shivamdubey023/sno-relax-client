@@ -1,6 +1,7 @@
 /* Games styles */
-.games-page{max-width:980px;margin:24px auto;padding:12px}
-.games-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.games-page{min-height:100vh;background:var(--bg-primary);padding:clamp(1rem,3vw,2rem)}
+.games-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:clamp(1rem,3vw,1.5rem);flex-wrap:wrap;gap:1rem}
+.games-back-btn{font-size:0.85rem;padding:0.5rem 0.8rem}
  .games-tabs button{margin-left:8px;padding:8px 12px;border-radius:8px;border:1px solid var(--divider);background:var(--bg-primary);color:var(--text-primary);cursor:pointer;transition:all 160ms ease;} .games-tabs button:hover{background:var(--hover-bg);color:var(--hover-text);transform:translateY(-2px);}
 .games-tabs button.active{background:var(--accent-primary);color:var(--text-primary);border-color:var(--accent-primary);box-shadow:0 8px 20px rgba(0,0,0,0.08);transform:translateY(-2px);}
 .games-content{display:flex;gap:16px;flex-wrap:wrap}

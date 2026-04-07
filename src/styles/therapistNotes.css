@@ -14,6 +14,29 @@
   position: relative;
 }
 
+.therapist-notes-header {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+  width: 100%;
+  max-width: 800px;
+  position: relative;
+  z-index: 1;
+}
+
+.tn-back-btn {
+  font-size: 0.85rem;
+  padding: 0.5rem 0.8rem;
+}
+
+.therapist-notes-header h1 {
+  font-size: clamp(1.3rem, 3.5vw, 1.8rem);
+  font-weight: 700;
+  margin: 0;
+  color: var(--text-primary);
+}
+
 /* Background pattern */
 .page::before {
   content: '';

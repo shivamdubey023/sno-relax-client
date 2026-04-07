@@ -39,25 +39,9 @@
   z-index: 1;
 }
 
-.back-btn {
-  background: transparent;
-  border: 1px solid var(--border-color);
-  color: var(--text-primary);
-  font-size: clamp(0.9rem, 2vw, 1rem);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  cursor: pointer;
-  padding: clamp(0.5rem, 1.5vw, 0.75rem) clamp(0.75rem, 2vw, 1.2rem);
-  border-radius: 10px;
-  transition: all 0.25s ease;
-}
-
-.back-btn:hover {
-  background: var(--accent-primary);
-  color: var(--bg-primary);
-  border-color: var(--accent-primary);
-  transform: translateY(-2px);
+.settings-back-btn {
+  font-size: 0.85rem;
+  padding: 0.5rem 0.8rem;
 }
 
 .settings-header h1 {

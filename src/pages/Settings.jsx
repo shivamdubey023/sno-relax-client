@@ -1,7 +1,8 @@
 import React, { useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Moon, Sun, Palette, Image, Check } from "lucide-react";
+import { Moon, Sun, Palette, Image, Check } from "lucide-react";
 import { ThemeContext } from "../context/ThemeContext";
+import BackButton from "../components/BackButton";
 import "../styles/Settings.css";
 
 export default function Settings() {
@@ -38,13 +39,7 @@ export default function Settings() {
   return (
     <div className="settings-container">
       <div className="settings-header">
-        <button
-          className="back-btn"
-          onClick={() => navigate(-1)}
-          aria-label="Go back"
-        >
-          <ArrowLeft size={20} /> Back
-        </button>
+        <BackButton variant="ghost" label="Back" className="settings-back-btn" />
         <h1>Settings</h1>
       </div>
 

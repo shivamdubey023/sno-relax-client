@@ -1,14 +1,15 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import BackButton from "../components/BackButton";
 import TherapistNotes from "../components/TherapistNotes";
-import "../styles/therapistNotes.css"; // normal CSS import
+import "../styles/therapistNotes.css";
 
 export default function TherapistNotesPage() {
-  const navigate = useNavigate();
-
   return (
     <div className="therapist-notes-page">
-      <h1>📝 Therapist Notes</h1>
+      <div className="therapist-notes-header">
+        <BackButton to="/" variant="ghost" label="Dashboard" className="tn-back-btn" />
+        <h1>Therapist Notes</h1>
+      </div>
 
       <div className="therapist-notes-wrapper">
         <TherapistNotes />

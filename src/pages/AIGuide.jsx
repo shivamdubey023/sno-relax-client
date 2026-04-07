@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import API_BASE from '../config/api.config';
 import { useNavigate } from "react-router-dom";
 import { Sparkles, Brain, Activity, Wind, Heart, X, ChevronRight, RefreshCw, Coffee } from "lucide-react";
+import BackButton from "../components/BackButton";
 import "../styles/AIGuide.css";
 
 export default function AIGuide() {
@@ -72,10 +73,10 @@ export default function AIGuide() {
       const firstAvg = values.slice(0, mid).reduce((s, x) => s + x, 0) / Math.max(1, mid);
       const lastAvg = values.slice(mid).reduce((s, x) => s + x, 0) / Math.max(1, values.length - mid);
       const trend = lastAvg - firstAvg;
+      const mean = avg;
 
       const variance = values.reduce((s, x) => s + Math.pow(x - mean, 2), 0) / values.length;
       const stddev = Math.sqrt(variance);
-      const mean = avg;
 
       const text = messages.map((m) => (m.message || '')).join(' ').toLowerCase();
       const has = (arr) => arr.some((k) => text.includes(k));
@@ -230,9 +231,7 @@ export default function AIGuide() {
   return (
     <div className="ai-guide-container">
       <div className="ai-guide-header">
-        <button className="back-btn" onClick={() => navigate(-1)}>
-          ← Back
-        </button>
+        <BackButton variant="ghost" label="Back" className="aiguide-back-btn" />
         <h1><Sparkles size={24} /> AI Wellness Guide</h1>
       </div>
 

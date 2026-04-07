@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import BackButton from "../components/BackButton";
 import TicTacToe from "../components/games/TicTacToe";
 import RockPaperScissors from "../components/games/RockPaperScissors";
 import "../styles/Games.css";
@@ -9,6 +10,7 @@ export default function GamesPage() {
   return (
     <div className="games-page">
       <div className="games-header">
+        <BackButton to="/" variant="ghost" label="Dashboard" className="games-back-btn" />
         <h1>Games</h1>
         <div className="games-tabs">
           <button

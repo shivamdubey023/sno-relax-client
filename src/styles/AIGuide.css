@@ -44,19 +44,9 @@
   }
 }
 
-.back-btn {
-  background: transparent;
-  border: 1px solid var(--border-color);
-  color: var(--text-primary);
-  padding: clamp(0.5rem, 1.5vw, 0.75rem) clamp(0.75rem, 2vw, 1.2rem);
-  border-radius: 10px;
-  font-size: clamp(0.9rem, 2vw, 1rem);
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.25s ease;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+.aiguide-back-btn {
+  font-size: 0.85rem;
+  padding: 0.5rem 0.8rem;
 }
 
 .back-btn:hover {
