@@ -269,11 +269,19 @@ export default function Chatbot() {
       finalMsg = await translate(msg, lang, "en");
     }
 
-    socketRef.current?.emit("chatbotMessage", {
-      userId,
-      message: finalMsg,
-      lang
-    });
+    if (socketRef.current?.connected) {
+      socketRef.current.emit("chatbotMessage", {
+        userId,
+        message: finalMsg,
+        lang
+      });
+    } else {
+      setLoad(false);
+      setMsgs((p) => [
+        ...p,
+        { t: "bot", txt: "Connection lost. Please refresh the page.", ts: Date.now() }
+      ]);
+    }
   };
 
   /* ---------------- HELP ---------------- */

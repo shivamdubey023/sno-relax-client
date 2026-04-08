@@ -105,12 +105,14 @@ export default function PrivateChat({ otherUserId, me }) {
     setText("");
 
     try {
-      socketRef.current?.emit("sendPrivateMessage", payload);
+      if (socketRef.current?.connected) {
+        socketRef.current.emit("sendPrivateMessage", payload);
       await axios.post(
         `${API_BASE}/api/community/private/message`,
         payload,
         { withCredentials: true }
       );
+    }
     } catch (err) {
       console.error("Failed to send private message:", err);
     }

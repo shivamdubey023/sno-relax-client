@@ -252,7 +252,6 @@ export default function CommunityPage() {
         <button className="hamburger" onClick={() => setMenuOpen((s) => !s)}>
           {menuOpen ? <X size={24} /> : <Hash size={24} />}
         </button>
-        <span className="topbar-title">Community</span>
       </div>
 
       {/* Sidebar */}

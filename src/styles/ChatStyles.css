@@ -36,7 +36,7 @@
    ============================ */
 :root {
   /* Chat Variables - Defaults (will be overridden by JS) */
-  --chat-bg: #e4ddd5;
+  
   --chat-surface: #f0f0f0;
   --chat-text: #000000;
   --chat-text-secondary: #555555;
@@ -54,7 +54,7 @@
   --msg-received-radius: 7.5px 7.5px 7.5px 0;
   
   /* Input Area */
-  --chat-input-bg: #f0f0f0;
+  
   --chat-input-text: #000000;
   --chat-input-placeholder: #888888;
   --chat-input-border: rgba(0,0,0,0.05);
@@ -145,6 +145,9 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+  height: 100dvh;
+  height: 100svh;
+  min-height: -webkit-fill-available;
   width: 100%;
   background: var(--chat-bg);
   position: relative;
@@ -184,6 +187,7 @@
 
 .chat-header-info {
   flex: 1;
+  text-align: center;
 }
 
 .chat-header-title {
@@ -191,8 +195,7 @@
   font-weight: 600;
   color: var(--chat-text);
   margin: 0;
-  display: flex;
-  align-items: center;
+  text-align: center;
   gap: 8px;
 }
 
@@ -649,6 +652,12 @@
    Responsive
    ============================ */
 @media (max-width: 600px) {
+  .chat-fullscreen {
+    height: 100dvh;
+    height: 100svh;
+    min-height: -webkit-fill-available;
+  }
+
   .chat-header {
     padding: 10px 12px;
   }
@@ -656,6 +665,7 @@
   .chat-messages {
     padding: 12px;
     gap: 2px;
+    padding-bottom: env(safe-area-inset-bottom, 12px);
   }
 
   .message-row {
@@ -672,6 +682,7 @@
 
   .chat-input-area {
     padding: 8px 10px;
+    padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
     gap: 8px;
   }
 
@@ -690,8 +701,8 @@
    Voice/Recording State
    ============================ */
 .chat-action-btn.recording {
-  background: #ef4444;
-  color: white;
+  background: var(--error, #ef4444);
+  color: var(--bg-primary, #ffffff);
   animation: pulse 1s infinite;
 }
 

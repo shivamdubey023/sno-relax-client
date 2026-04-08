@@ -33,6 +33,9 @@ code {
 .modal-overlay,
 .modal-content {
   background-image: none !important;
+  height: 100dvh;
+  height: 100svh;
+  min-height: -webkit-fill-available;
 }
 
 /* Ensure chat areas have solid backgrounds */
