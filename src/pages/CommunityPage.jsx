@@ -3,9 +3,22 @@ import React, { useEffect, useState, useRef } from "react";
 import { API_ENDPOINTS, SOCKET_URL } from "../config/api.config";
 import { io } from "socket.io-client";
 import { useNavigate } from 'react-router-dom';
-import { Users, Plus, X, MessageCircle, Send, LogOut, LogIn, Hash } from "lucide-react";
+import { Users, Plus, X, MessageCircle, Send, LogOut, LogIn, Hash, Palette } from "lucide-react";
 import "../styles/Community.css";
 import "../styles/ChatStyles.css";
+
+const CHAT_THEMES = [
+  { id: 'default', name: 'Classic', color: '#e4ddd5' },
+  { id: 'dark', name: 'Dark', color: '#0b1418' },
+  { id: 'blue', name: 'Blue', color: '#d2dbdf' },
+  { id: 'teal', name: 'Teal', color: '#d5e8e8' },
+  { id: 'pink', name: 'Pink', color: '#fce4ec' },
+  { id: 'purple', name: 'Purple', color: '#ede7f6' },
+  { id: 'ocean', name: 'Ocean', color: '#e0f7fa' },
+  { id: 'sunset', name: 'Sunset', color: '#fff3e0' },
+  { id: 'forest', name: 'Forest', color: '#e8f5e9' },
+  { id: 'none', name: 'Solid', color: 'transparent' },
+];
 
 export default function CommunityPage() {
   const storedUserId =
@@ -39,6 +52,14 @@ export default function CommunityPage() {
   const socketRef = useRef(null);
   const [showScrollDown, setShowScrollDown] = useState(false);
   const [showScrollUp, setShowScrollUp] = useState(false);
+  const [chatTheme, setChatTheme] = useState(localStorage.getItem('chatTheme') || 'default');
+  const [showThemePicker, setShowThemePicker] = useState(false);
+
+  const handleThemeChange = (themeId) => {
+    setChatTheme(themeId);
+    localStorage.setItem('chatTheme', themeId);
+    setShowThemePicker(false);
+  };
 
   // Scroll functions
   const scrollToBottom = () => {
@@ -192,6 +213,10 @@ export default function CommunityPage() {
       credentials: "include",
       body: JSON.stringify({ userId: uid, nickname, inviteCode }),
     });
+    if (!res.ok) {
+      alert("Failed to join group");
+      return;
+    }
     if (res.ok) {
       const updated = await loadGroups();
       await loadGroupMembers();
@@ -203,14 +228,16 @@ export default function CommunityPage() {
   };
 
   const leaveGroup = async (groupId) => {
-    await fetch(API_ENDPOINTS.COMMUNITY.LEAVE_GROUP(groupId), {
+    const res = await fetch(API_ENDPOINTS.COMMUNITY.LEAVE_GROUP(groupId), {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
       body: JSON.stringify({ userId: currentUserId }),
     });
-    setSelectedGroup(null);
-    loadGroups();
+    if (res.ok) {
+      setSelectedGroup(null);
+      loadGroups();
+    }
   };
 
   const sendMessage = async (e) => {
@@ -296,8 +323,26 @@ export default function CommunityPage() {
         </div>
       </aside>
 
+      {/* Theme Picker */}
+      {showThemePicker && selectedGroup && (
+        <div className="chat-theme-picker">
+          <div className="chat-theme-picker-title">Chat Background</div>
+          <div className="chat-theme-options">
+            {CHAT_THEMES.map(theme => (
+              <button
+                key={theme.id}
+                className={`chat-theme-btn ${chatTheme === theme.id ? 'active' : ''}`}
+                style={{ background: theme.color }}
+                onClick={() => handleThemeChange(theme.id)}
+                title={theme.name}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Main Chat Area */}
-      <main className="community-main">
+      <main className={`community-main whatsapp-chat-bg ${chatTheme}`}>
         {!selectedGroup ? (
           <div className="no-selection">
             <MessageCircle size={80} />
@@ -312,6 +357,14 @@ export default function CommunityPage() {
                 <p>{selectedGroup.description}</p>
               </div>
               <div className="header-actions">
+                <button 
+                  className="leave-btn" 
+                  onClick={() => setShowThemePicker(!showThemePicker)}
+                  title="Change background"
+                  style={{ padding: '8px 12px' }}
+                >
+                  <Palette size={16} />
+                </button>
                 {isMember ? (
                   <button className="leave-btn" onClick={() => leaveGroup(selectedGroup._id || selectedGroup.id)}>
                     <LogOut size={16} /> Leave
@@ -491,7 +544,7 @@ export default function CommunityPage() {
               <li>No harassment or bullying</li>
               <li>Report inappropriate behavior</li>
             </ul>
-            <button>I Understand & Agree</button>
+            <button onClick={() => { setShowViolationPopup(false); localStorage.setItem('communityPolicyAccepted','1'); }}>I Understand & Agree</button>
           </div>
         </div>
       )}

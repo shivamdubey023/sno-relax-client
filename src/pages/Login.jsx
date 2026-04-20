@@ -66,9 +66,11 @@ export default function Login({ onLogin }) {
       return;
     }
 
-    try {
+    const API_BASE = process.env.REACT_APP_API_BASE?.split(",")[0]?.trim() || "http://localhost:10000";
+
+  try {
       const res = await fetch(
-        `${process.env.REACT_APP_API_BASE || "http://localhost:5000"}/api/auth/login`,
+        `${API_BASE}/api/auth/login`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -126,7 +128,7 @@ export default function Login({ onLogin }) {
 
     try {
       const res = await fetch(
-        `${process.env.REACT_APP_API_BASE || "http://localhost:5000"}/api/auth/create-user`,
+        `${API_BASE}/api/auth/create-user`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

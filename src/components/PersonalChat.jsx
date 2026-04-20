@@ -7,7 +7,7 @@ import axios from "axios";
    - Admin endpoint (can later be protected by roles)
    - Environment-based for deployment
 -------------------------------------------------- */
-const API = process.env.REACT_APP_API_URL || "http://localhost:5000/api/admin";
+const API = process.env.REACT_APP_API_URL || "http://localhost:10000/api/admin";
 
 export default function UserList({ onSelectUser }) {
   /* --------------------------------------------------

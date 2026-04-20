@@ -57,7 +57,7 @@ export default function MoodTracker() {
      - apiBase kept configurable for deployment
   -------------------------------------------------- */
   const userId = localStorage.getItem("sno_userId") || "";
-  const apiBase = process.env.REACT_APP_API_BASE || "http://localhost:5000";
+  const apiBase = process.env.REACT_APP_API_BASE?.split(',')[0]?.trim() || "http://localhost:10000";
 
   /* --------------------------------------------------
      FETCH MOOD HISTORY

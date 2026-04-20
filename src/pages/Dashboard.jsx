@@ -47,8 +47,7 @@ export default function Dashboard({ isLoggedIn, onLogout }) {
   }, []);
   const [startupContent, setStartupContent] = useState("");
 
-  const API_BASE =
-    process.env.REACT_APP_API_BASE || "http://localhost:5000";
+  const API_BASE = process.env.REACT_APP_API_BASE?.split(",")[0]?.trim() || "http://localhost:10000";
 
   // ---- Fetch city from coordinates ----
   const fetchCityFromCoords = async (lat, lon) => {
@@ -167,7 +166,7 @@ export default function Dashboard({ isLoggedIn, onLogout }) {
   }, [API_BASE]);
 
   return (
-    <div className="dashboard-container">
+    <div className="dashboard-container default-bg">
       {isMobile && sidebarOpen && (
         <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />
       )}

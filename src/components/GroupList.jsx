@@ -9,7 +9,7 @@ import axios from "axios";
  * Newer components use API_ENDPOINTS from config.
  */
 const API =
-  process.env.REACT_APP_API_URL || "http://localhost:5000/api/community";
+  process.env.REACT_APP_API_URL || "http://localhost:10000/api/community";
 
 /**
  * GroupList (Legacy / Simple)

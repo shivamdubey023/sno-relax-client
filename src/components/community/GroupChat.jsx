@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { API_ENDPOINTS, SOCKET_URL } from "../../config/api.config";
 import { io } from "socket.io-client";
-import { Send } from "lucide-react";
+import { Send, Image as ImageIcon, X } from "lucide-react";
 import "../../styles/ChatStyles.css";
 
 /**
