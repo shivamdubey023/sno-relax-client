@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/Login.css";
-import loginImg from "../img/login.jpg";
+import { API_BASE, STORAGE_KEYS } from "../constants";
 
 export default function Login({ onLogin }) {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("login"); // "login" or "register"
+  const [activeTab, setActiveTab] = useState("login");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -15,6 +15,7 @@ export default function Login({ onLogin }) {
   const [longitude, setLongitude] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [locationStatus, setLocationStatus] = useState("loading");
 
   useEffect(() => {
     const fetchCityFromCoords = async (lat, lon) => {
@@ -35,75 +36,84 @@ export default function Login({ onLogin }) {
     };
 
     const getLocation = () => {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          async (pos) => {
-            const { latitude, longitude } = pos.coords;
-            setLatitude(latitude);
-            setLongitude(longitude);
-
-            const detectedCity = await fetchCityFromCoords(latitude, longitude);
-            setCity(detectedCity);
-          },
-          () => setErrorMessage("Please allow location to continue.")
-        );
-      } else {
-        setErrorMessage("Geolocation not supported by your browser.");
+      if (!navigator.geolocation) {
+        setLocationStatus("unsupported");
+        return;
       }
+
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          const { latitude, longitude } = pos.coords;
+          setLatitude(latitude);
+          setLongitude(longitude);
+          const detectedCity = await fetchCityFromCoords(latitude, longitude);
+          setCity(detectedCity);
+          setLocationStatus("ready");
+        },
+        () => {
+          setLocationStatus("denied");
+        },
+        { timeout: 10000, maximumAge: 300000 }
+      );
     };
 
     getLocation();
   }, []);
 
+  const validateEmail = (email) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  };
+
+  const validatePhone = (phone) => {
+    return /^[\d\s\-+()]{10,}$/.test(phone.replace(/\s/g, ""));
+  };
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setErrorMessage("");
-    setLoading(true);
 
     if (!email || !phone) {
       setErrorMessage("Please enter email and phone number.");
-      setLoading(false);
       return;
     }
 
-    const API_BASE = process.env.REACT_APP_API_BASE?.split(",")[0]?.trim() || "http://localhost:10000";
+    if (!validateEmail(email)) {
+      setErrorMessage("Please enter a valid email address.");
+      return;
+    }
 
-  try {
-      const res = await fetch(
-        `${API_BASE}/api/auth/login`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, phone }),
-        }
-      );
+    setLoading(true);
+
+    try {
+      const res = await fetch(`${API_BASE}/api/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, phone }),
+      });
       const data = await res.json();
 
       if (!res.ok) {
         setErrorMessage(data.error || "Login failed");
-        setLoading(false);
         return;
       }
 
-      // Save user info
-      localStorage.setItem("sno_userId", data.user.userId);
-      localStorage.setItem("sno_firstName", data.user.firstName);
-      localStorage.setItem("sno_lastName", data.user.lastName);
-      localStorage.setItem("sno_email", data.user.email);
-      localStorage.setItem("sno_phone", data.user.phone);
-      localStorage.setItem("sno_city", data.user.city);
-      localStorage.setItem("sno_lat", data.user.latitude);
-      localStorage.setItem("sno_lon", data.user.longitude);
+      localStorage.setItem(STORAGE_KEYS.USER_ID, data.user.userId);
+      localStorage.setItem(STORAGE_KEYS.FIRST_NAME, data.user.firstName);
+      localStorage.setItem(STORAGE_KEYS.LAST_NAME, data.user.lastName);
+      localStorage.setItem(STORAGE_KEYS.EMAIL, data.user.email);
+      localStorage.setItem(STORAGE_KEYS.PHONE, data.user.phone);
+      localStorage.setItem(STORAGE_KEYS.CITY, data.user.city);
+      localStorage.setItem(STORAGE_KEYS.LATITUDE, data.user.latitude);
+      localStorage.setItem(STORAGE_KEYS.LONGITUDE, data.user.longitude);
 
-      // Mark as logged in
       const token = data.token || "logged-in";
-      localStorage.setItem("authToken", token);
+      localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, token);
       if (onLogin) onLogin(token);
 
-      navigate("/");
+      navigate("/", { replace: true });
     } catch (err) {
       console.error(err);
-      setErrorMessage("Something went wrong. Please try again.");
+      setErrorMessage("Network error. Please check your connection.");
     } finally {
       setLoading(false);
     }
@@ -112,82 +122,91 @@ export default function Login({ onLogin }) {
   const handleRegister = async (e) => {
     e.preventDefault();
     setErrorMessage("");
-    setLoading(true);
 
     if (!firstName || !lastName || !email || !phone) {
-      setErrorMessage("Please fill all required fields.");
-      setLoading(false);
+      setErrorMessage("Please fill in all required fields.");
       return;
     }
 
-    if (!city || !latitude || !longitude) {
-      setErrorMessage("Waiting for location. Please allow location access.");
-      setLoading(false);
+    if (!validateEmail(email)) {
+      setErrorMessage("Please enter a valid email address.");
       return;
     }
+
+    if (!validatePhone(phone)) {
+      setErrorMessage("Please enter a valid phone number (10+ digits).");
+      return;
+    }
+
+    if (locationStatus !== "ready") {
+      setErrorMessage("Waiting for location. Please allow location access.");
+      return;
+    }
+
+    setLoading(true);
 
     try {
-      const res = await fetch(
-        `${API_BASE}/api/auth/create-user`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            firstName,
-            lastName,
-            email,
-            phone,
-            city,
-            latitude,
-            longitude,
-          }),
-        }
-      );
+      const res = await fetch(`${API_BASE}/api/auth/create-user`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          email: email.trim(),
+          phone: phone.trim(),
+          city,
+          latitude,
+          longitude,
+        }),
+      });
       const data = await res.json();
 
       if (!res.ok) {
         setErrorMessage(data.error || "Registration failed");
-        setLoading(false);
         return;
       }
 
-      // Save user info
-      localStorage.setItem("sno_userId", data.userId);
-      localStorage.setItem("sno_firstName", firstName.trim());
-      localStorage.setItem("sno_lastName", lastName.trim());
-      localStorage.setItem("sno_email", email.trim());
-      localStorage.setItem("sno_phone", phone.trim());
-      localStorage.setItem("sno_city", city);
-      localStorage.setItem("sno_lat", latitude);
-      localStorage.setItem("sno_lon", longitude);
+      localStorage.setItem(STORAGE_KEYS.USER_ID, data.userId);
+      localStorage.setItem(STORAGE_KEYS.FIRST_NAME, firstName.trim());
+      localStorage.setItem(STORAGE_KEYS.LAST_NAME, lastName.trim());
+      localStorage.setItem(STORAGE_KEYS.EMAIL, email.trim());
+      localStorage.setItem(STORAGE_KEYS.PHONE, phone.trim());
+      localStorage.setItem(STORAGE_KEYS.CITY, city);
+      localStorage.setItem(STORAGE_KEYS.LATITUDE, latitude);
+      localStorage.setItem(STORAGE_KEYS.LONGITUDE, longitude);
 
-      // Mark as logged in
       const token = data.token || "logged-in";
-      localStorage.setItem("authToken", token);
+      localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, token);
       if (onLogin) onLogin(token);
 
-      navigate("/");
+      navigate("/", { replace: true });
     } catch (err) {
       console.error(err);
-      setErrorMessage("Something went wrong. Please try again.");
+      setErrorMessage("Network error. Please check your connection.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="login-container" style={{ backgroundImage: `url(${loginImg})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
+    <div className="login-container">
       <div className="login-box">
-        <h1 className="site-title">🌙 SnoRelax</h1>
-        <p className="city-info">📍 Your City: {city || "Detecting..."}</p>
-        <p className="subtitle">Take a deep breath, let’s get you started 🌱</p>
+        <h1 className="site-title">SnoRelax</h1>
+        <p className="city-info">
+          {locationStatus === "loading"
+            ? "Detecting location..."
+            : locationStatus === "denied"
+            ? "Location unavailable"
+            : `Location: ${city}`}
+        </p>
+        <p className="subtitle">Your mental wellness companion</p>
 
         <div className="tab-container">
           <button
             className={`tab-button ${activeTab === "login" ? "active" : ""}`}
             onClick={() => setActiveTab("login")}
           >
-            Login
+            Sign In
           </button>
           <button
             className={`tab-button ${activeTab === "register" ? "active" : ""}`}
@@ -201,20 +220,22 @@ export default function Login({ onLogin }) {
           <form onSubmit={handleLogin}>
             <input
               type="email"
-              placeholder="Email"
+              placeholder="Email address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              required
+              autoComplete="email"
+              disabled={loading}
             />
             <input
               type="tel"
-              placeholder="Phone"
+              placeholder="Phone number"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              required
+              autoComplete="tel"
+              disabled={loading}
             />
             <button type="submit" disabled={loading}>
-              {loading ? "Logging in..." : "Login"}
+              {loading ? <span className="loading-spinner" /> : "Sign In"}
             </button>
           </form>
         )}
@@ -223,43 +244,47 @@ export default function Login({ onLogin }) {
           <form onSubmit={handleRegister}>
             <input
               type="text"
-              placeholder="First Name"
+              placeholder="First name"
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
-              required
+              autoComplete="given-name"
+              disabled={loading}
             />
             <input
               type="text"
-              placeholder="Last Name"
+              placeholder="Last name"
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
-              required
+              autoComplete="family-name"
+              disabled={loading}
             />
             <input
               type="email"
-              placeholder="Email"
+              placeholder="Email address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              required
+              autoComplete="email"
+              disabled={loading}
             />
             <input
               type="tel"
-              placeholder="Phone"
+              placeholder="Phone number"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              required
+              autoComplete="tel"
+              disabled={loading}
             />
             <button
               type="submit"
-              disabled={loading || !city || !latitude || !longitude}
+              disabled={loading || locationStatus !== "ready"}
             >
-              {loading ? "Creating Account..." : "Create Account"}
+              {loading ? <span className="loading-spinner" /> : "Create Account"}
             </button>
           </form>
         )}
 
         {errorMessage && (
-          <p className="error-message">⚠️ {errorMessage}</p>
+          <p className="error-message">{errorMessage}</p>
         )}
       </div>
     </div>
