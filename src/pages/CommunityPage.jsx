@@ -447,7 +447,7 @@ export default function CommunityPage() {
                       rows={1}
                     />
                   </div>
-                  <button className="chat-action-btn send msg-send" type="submit" disabled={loading || !isMember || !msgInput.trim()}>
+                  <button className="chat-action-btn send msg-send" type="button" onClick={sendMessage} disabled={loading || !isMember || !msgInput.trim()}>
                     <Send size={20} />
                   </button>
                 </div>
