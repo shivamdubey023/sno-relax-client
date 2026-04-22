@@ -1,39 +1,44 @@
 import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
-import { Upload, FileText, Clock, AlertCircle, CheckCircle } from "lucide-react";
+import { Upload, FileText, Clock, AlertCircle, CheckCircle, X } from "lucide-react";
 import BackButton from "../components/BackButton";
 import "../styles/Reports.css";
 
 export default function Reports() {
-  const navigate = useNavigate();
-
   const [loading, setLoading] = useState(false);
   const [reports, setReports] = useState([]);
   const [file, setFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [dragActive, setDragActive] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [error, setError] = useState(null);
 
   const userId = localStorage.getItem("sno_userId") || "";
-  const API_URL = process.env.REACT_APP_API_BASE || "";
+  const API_URL = process.env.REACT_APP_API_BASE?.split(",")[0]?.trim() || "http://localhost:10000";
 
   const fetchAll = useCallback(async () => {
-    if (!userId) return;
+    if (!userId) {
+      setError("Please login to view reports");
+      return;
+    }
 
     try {
       setLoading(true);
-      const base = API_URL || "";
-      const url = `${base}/api/reports/${encodeURIComponent(userId)}?all=1`;
+      setError(null);
+      const url = `${API_URL}/api/reports/${encodeURIComponent(userId)}?all=1`;
 
       const res = await axios.get(url, { withCredentials: true });
 
-      if (res.data && res.data.exists) {
+      if (res.data && res.data.reports) {
         setReports(res.data.reports || []);
+      } else if (res.data && res.data.exists) {
+        setReports([res.data.report]);
       } else {
         setReports([]);
       }
     } catch (err) {
       console.warn("Failed to fetch reports:", err?.message || err);
+      setError("Failed to load reports");
       setReports([]);
     } finally {
       setLoading(false);
@@ -41,8 +46,9 @@ export default function Reports() {
   }, [API_URL, userId]);
 
   useEffect(() => {
-    if (!userId) return;
-    fetchAll();
+    if (userId) {
+      fetchAll();
+    }
   }, [userId, fetchAll]);
 
   const handleFile = (e) => {
@@ -79,25 +85,39 @@ export default function Reports() {
 
   const handleUpload = async () => {
     if (!file) {
-      alert("Please choose an image file to upload");
+      setError("Please choose an image file to upload");
       return;
     }
     if (!userId) {
-      alert("User session expired. Please login again.");
+      setError("User session expired. Please login again.");
       return;
     }
 
     try {
       setLoading(true);
+      setError(null);
+      setUploadProgress(10);
+
       const form = new FormData();
       form.append("userId", userId);
       form.append("userName", localStorage.getItem("sno_firstName") || "");
       form.append("image", file);
 
-      const base = API_URL || "";
-      const url = `${base}/api/reports/upload`;
+      const url = `${API_URL}/api/reports/upload`;
+      setUploadProgress(30);
 
-      const res = await axios.post(url, form, { withCredentials: true });
+      const res = await axios.post(url, form, {
+        withCredentials: true,
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+        onUploadProgress: (progressEvent) => {
+          const percent = Math.round((progressEvent.loaded * 50) / progressEvent.total);
+          setUploadProgress(percent);
+        },
+      });
+
+      setUploadProgress(100);
 
       if (res.data && res.data.ok) {
         alert("Report uploaded successfully!");
@@ -105,19 +125,29 @@ export default function Reports() {
         setPreviewUrl(null);
         fetchAll();
       } else {
-        alert("Upload failed");
+        setError("Upload failed");
       }
     } catch (err) {
       console.error("Upload error:", err);
-      alert("Upload failed: " + (err?.response?.data?.error || err?.message || "Unknown error"));
+      setError("Upload failed: " + (err?.response?.data?.error || err?.message || "Unknown error"));
     } finally {
       setLoading(false);
+      setUploadProgress(0);
     }
   };
 
   const getImageUrl = (id) => {
-    const base = API_URL || "";
-    return `${base}/api/reports/image/${id}`;
+    const cleanId = String(id).replace(/"/g, '');
+    return `${API_URL}/api/reports/image/${encodeURIComponent(cleanId)}`;
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "analyzed": return "#22c55e";
+      case "pending": return "#f59e0b";
+      case "error": return "#ef4444";
+      default: return "#6b7280";
+    }
   };
 
   return (
@@ -165,7 +195,28 @@ export default function Reports() {
 
           {previewUrl && (
             <div className="preview-container">
+              <button className="preview-close" onClick={() => {
+                setFile(null);
+                setPreviewUrl(null);
+              }}>
+                <X size={16} />
+              </button>
               <img src={previewUrl} alt="Preview" className="preview-image" />
+            </div>
+          )}
+
+          {uploadProgress > 0 && (
+            <div className="upload-progress">
+              <div className="progress-bar" style={{ width: `${uploadProgress}%` }} />
+              <span>{uploadProgress}%</span>
+            </div>
+          )}
+
+          {error && (
+            <div className="error-message">
+              <AlertCircle size={16} />
+              {error}
+              <button onClick={() => setError(null)}><X size={14} /></button>
             </div>
           )}
 
@@ -194,7 +245,7 @@ export default function Reports() {
 
         {/* Reports List */}
         <div className="reports-section">
-          <h2><FileText size={20} /> Your Reports</h2>
+          <h2><FileText size={20} /> Your Reports ({reports.length})</h2>
 
           {loading && reports.length === 0 && (
             <div className="loading-state">
@@ -203,7 +254,7 @@ export default function Reports() {
             </div>
           )}
 
-          {!loading && reports.length === 0 && (
+          {!loading && reports.length === 0 && !error && (
             <div className="empty-state">
               <FileText size={60} />
               <p>No reports uploaded yet</p>
@@ -214,7 +265,7 @@ export default function Reports() {
           {!loading && reports.length > 0 && (
             <div className="reports-list">
               {reports.map((r) => (
-                <div key={r.id} className="report-card">
+                <div key={r.id || r._id} className="report-card">
                   <div className="report-header">
                     <div className="report-info">
                       <h3>Report</h3>
@@ -223,53 +274,93 @@ export default function Reports() {
                         {new Date(r.createdAt).toLocaleDateString()}
                       </span>
                     </div>
+                    <span 
+                      className="report-status"
+                      style={{ backgroundColor: getStatusColor(r.reportStatus) }}
+                    >
+                      {r.reportStatus || 'unknown'}
+                    </span>
                   </div>
 
                   <div className="report-content">
-                    <div className="report-analysis">
-                      <h4><AlertCircle size={16} /> Analysis</h4>
-                      
-                      {r.analysis?.tests?.length > 0 && (
-                        <div className="analysis-item">
-                          <span className="label">Tests:</span>
-                          <span className="value">{(r.analysis.tests || []).join(", ")}</span>
+                    {/* Summary */}
+                    {r.summary && (
+                      <div className="report-summary">
+                        <div className={`status-badge ${r.summary.overall}`}>
+                          {r.summary.overall === 'normal' && <CheckCircle size={16} />}
+                          {r.summary.overall === 'abnormal' && <AlertCircle size={16} />}
+                          {r.summary.overall === 'critical' && <AlertCircle size={16} />}
+                          <span>{r.summary.overall?.toUpperCase() || 'ANALYZED'}</span>
                         </div>
-                      )}
-                      
-                      {r.analysis?.numbers?.length > 0 && (
-                        <div className="analysis-item">
-                          <span className="label">Values:</span>
-                          <span className="value">{(r.analysis.numbers || []).join(", ")}</span>
-                        </div>
-                      )}
-                      
-                      {r.analysis?.dates?.length > 0 && (
-                        <div className="analysis-item">
-                          <span className="label">Dates:</span>
-                          <span className="value">{(r.analysis.dates || []).join(", ")}</span>
-                        </div>
-                      )}
-
-                      {r.analysis?.summary && (
-                        <div className="analysis-summary">
-                          <span className="label">Summary:</span>
-                          <p>{r.analysis.summary}</p>
-                        </div>
-                      )}
-                    </div>
-
-                    {r.ocrText && (
-                      <div className="ocr-section">
-                        <h4>OCR Text</h4>
-                        <pre className="ocr-text">{r.ocrText}</pre>
+                        {r.summary.message && (
+                          <p className="summary-message">{r.summary.message}</p>
+                        )}
                       </div>
+                    )}
+
+                    {/* Test Results */}
+                    {r.testResults && r.testResults.length > 0 && (
+                      <div className="test-results">
+                        <h4><AlertCircle size={16} /> Test Results</h4>
+                        <div className="results-grid">
+                          {r.testResults.map((test, idx) => (
+                            <div key={idx} className={`test-item ${test.status}`}>
+                              <span className="test-name">{test.name}</span>
+                              <span className="test-value">
+                                {test.value} {test.unit}
+                              </span>
+                              <span className={`test-status ${test.status}`}>
+                                {test.status}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Recommendations */}
+                    {r.recommendations && r.recommendations.length > 0 && (
+                      <div className="recommendations">
+                        <h4>Recommendations</h4>
+                        <ul>
+                          {r.recommendations.map((rec, idx) => (
+                            <li key={idx}>{rec}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {/* Patient Info */}
+                    {r.patientInfo && (
+                      <div className="patient-info">
+                        {r.patientInfo.patientName && (
+                          <span>Patient: {r.patientInfo.patientName}</span>
+                        )}
+                        {r.patientInfo.age && (
+                          <span>Age: {r.patientInfo.age}</span>
+                        )}
+                        {r.patientInfo.gender && (
+                          <span>Gender: {r.patientInfo.gender}</span>
+                        )}
+                      </div>
+                    )}
+
+                    {/* OCR Text (collapsed by default) */}
+                    {r.ocrText && (
+                      <details className="ocr-section">
+                        <summary>View OCR Text</summary>
+                        <pre className="ocr-text">{r.ocrText}</pre>
+                      </details>
                     )}
                   </div>
 
                   <div className="report-image">
                     <img
-                      src={getImageUrl(r.id)}
+                      src={getImageUrl(r.id || r._id)}
                       alt="Medical report"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                      }}
                     />
                   </div>
                 </div>

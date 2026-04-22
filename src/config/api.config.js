@@ -29,6 +29,12 @@ export const API_ENDPOINTS = {
     GET_MOODS: `${API_BASE}/api/moods`,
     ADD_MOOD: `${API_BASE}/api/moods`,
   },
+  REPORTS: {
+    UPLOAD: `${API_BASE}/api/reports/upload`,
+    GET_ALL: (userId) => `${API_BASE}/api/reports/${encodeURIComponent(userId)}`,
+    GET_REPORT: (reportId) => `${API_BASE}/api/reports/report/${reportId}`,
+    GET_IMAGE: (id) => `${API_BASE}/api/reports/image/${id}`,
+  },
 };
 
 export default API_BASE;
