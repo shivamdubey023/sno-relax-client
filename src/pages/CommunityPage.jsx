@@ -1,11 +1,12 @@
 // src/pages/CommunityPage.jsx
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { API_ENDPOINTS, SOCKET_URL } from "../config/api.config";
 import { io } from "socket.io-client";
 import { useNavigate } from 'react-router-dom';
-import { Users, Plus, X, MessageCircle, Send, LogOut, LogIn, Hash, Palette } from "lucide-react";
+import { Users, Plus, X, MessageCircle, Send, LogOut, LogIn, Hash, Palette, Bell, BellOff, Search, MoreVertical, Paperclip, Smile, Mic, Check, CheckCheck } from "lucide-react";
 import "../styles/Community.css";
 import "../styles/ChatStyles.css";
+import { useNotificationService } from "../hooks/useNotificationService";
 
 const CHAT_THEMES = [
   { id: 'default', name: 'Classic', color: '#e4ddd5' },
@@ -54,6 +55,29 @@ export default function CommunityPage() {
   const [showScrollUp, setShowScrollUp] = useState(false);
   const [chatTheme, setChatTheme] = useState(localStorage.getItem('chatTheme') || 'default');
   const [showThemePicker, setShowThemePicker] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showOptions, setShowOptions] = useState(false);
+  const [typingUsers, setTypingUsers] = useState({});
+
+  const notificationService = useNotificationService();
+  const lastMessageCountRef = useRef(0);
+  const isWindowFocusedRef = useRef(true);
+
+  const filteredGroups = groups.filter(g => 
+    g.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (g.description || "").toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  useEffect(() => {
+    const handleFocus = () => { isWindowFocusedRef.current = true; };
+    const handleBlur = () => { isWindowFocusedRef.current = false; };
+    window.addEventListener('focus', handleFocus);
+    window.addEventListener('blur', handleBlur);
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      window.removeEventListener('blur', handleBlur);
+    };
+  }, []);
 
   const handleThemeChange = (themeId) => {
     setChatTheme(themeId);
@@ -169,7 +193,26 @@ export default function CommunityPage() {
         { credentials: "include" }
       );
       const data = await res.json();
-      setMessages(data.messages || data || []);
+      const newMessages = data.messages || data || [];
+      const oldMessageCount = messages.length;
+      setMessages(newMessages);
+
+      if (
+        selectedGroup &&
+        newMessages.length > oldMessageCount &&
+        !isWindowFocusedRef.current
+      ) {
+        const latestMsg = newMessages[newMessages.length - 1];
+        if (latestMsg && String(latestMsg.senderId) !== String(currentUserId)) {
+          const groupId = selectedGroup._id || selectedGroup.id;
+          notificationService.notify({
+            title: `${selectedGroup.name}`,
+            body: `${latestMsg.senderNickname || 'Anonymous'}: ${latestMsg.message || latestMsg.text}`,
+            groupId: groupId,
+          });
+        }
+      }
+      lastMessageCountRef.current = newMessages.length;
     } catch {
       setMessages([]);
     }
@@ -284,37 +327,69 @@ export default function CommunityPage() {
       {/* Sidebar */}
       <aside className={`community-sidebar ${menuOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
-          <h2><Users size={20} /> Communities</h2>
+          <h2><Users size={20} /></h2>
           <div className="sidebar-actions">
-            <button className="create-btn" onClick={() => setShowCreateModal(true)} title="Create group">
-              <Plus size={20} />
+            <button className="create-btn" onClick={() => setShowCreateModal(true)} title="New community">
+              <Users size={20} />
             </button>
             <button className="close-sidebar" onClick={() => setMenuOpen(false)}>
-              <X size={18} />
+              <MoreVertical size={18} />
             </button>
           </div>
         </div>
 
+        <div className="sidebar-search">
+          <div className="search-wrapper">
+            <Search size={18} className="search-icon" />
+            <input 
+              type="text" 
+              placeholder="Search communities..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            {searchQuery && (
+              <button className="clear-search" onClick={() => setSearchQuery("")}>
+                <X size={14} />
+              </button>
+            )}
+          </div>
+        </div>
+
         <div className="groups-list">
-          {groups.length === 0 ? (
+          {filteredGroups.length === 0 ? (
             <div className="empty-groups">
-              <Hash size={40} />
-              <p>No groups yet</p>
-              <span>Create one to get started</span>
+              <Hash size={48} />
+              <p>{searchQuery ? 'No communities found' : 'No communities yet'}</p>
+              <span>{searchQuery ? 'Try a different search' : 'Start a new community'}</span>
+              <button className="create-group-btn" onClick={() => { setShowCreateModal(true); setMenuOpen(false); }}>
+                <Plus size={16} /> Create Community
+              </button>
             </div>
           ) : (
-            groups.map((g) => {
+            filteredGroups.map((g) => {
               const gid = g._id || g.id;
               const active = selectedGroup && (String(selectedGroup._id || selectedGroup.id) === String(gid));
+              const isMuted = notificationService.isMuted('group', gid);
               return (
                 <div
                   key={gid}
-                  className={`group-item ${active ? 'active' : ''}`}
+                  className={`group-item ${active ? 'active' : ''} ${isMuted ? 'muted-group' : ''}`}
                   onClick={() => { setSelectedGroup(g); setMenuOpen(false); }}
                 >
+                  <div className="group-avatar">
+                    <Hash size={22} />
+                  </div>
                   <div className="group-info">
-                    <h4><Hash size={14} /> {g.name}</h4>
-                    <p>{g.description || `${g.memberCount || 0} members`}</p>
+                    <div className="group-info-header">
+                      <h4>{g.name}</h4>
+                      {isMuted && <BellOff size={14} className="muted-icon" />}
+                    </div>
+                    <p className="group-preview">{g.description || `${g.memberCount || 0} members`}</p>
+                  </div>
+                  <div className="group-meta">
+                    {!isMuted && g.unread > 0 && (
+                      <span className="group-unread">{g.unread > 99 ? '99+' : g.unread}</span>
+                    )}
                   </div>
                 </div>
               );
@@ -352,27 +427,54 @@ export default function CommunityPage() {
         ) : (
           <>
             <div className="chat-header-comm">
-              <div className="chat-info">
-                <h3><Hash size={18} /> {selectedGroup.name}</h3>
-                <p>{selectedGroup.description}</p>
+              <div className="chat-header-left">
+                <button className="back-btn" onClick={() => { setSelectedGroup(null); setMenuOpen(true); }} style={{ display: 'none' }}>
+                  <X size={20} />
+                </button>
+                <div className="chat-avatar">
+                  <Hash size={20} />
+                </div>
+                <div className="chat-info">
+                  <h3>{selectedGroup.name}</h3>
+                  <p className="chat-status">
+                    {groupMembers.length} members • {selectedGroup.description || 'Community chat'}
+                  </p>
+                </div>
               </div>
               <div className="header-actions">
-                <button 
-                  className="leave-btn" 
-                  onClick={() => setShowThemePicker(!showThemePicker)}
-                  title="Change background"
-                  style={{ padding: '8px 12px' }}
-                >
-                  <Palette size={16} />
+                <button className="header-icon-btn" onClick={() => setShowThemePicker(!showThemePicker)} title="Wallpaper">
+                  <Palette size={20} />
                 </button>
-                {isMember ? (
-                  <button className="leave-btn" onClick={() => leaveGroup(selectedGroup._id || selectedGroup.id)}>
-                    <LogOut size={16} /> Leave
+                {selectedGroup && isMember && (
+                  <button 
+                    className={`header-icon-btn ${notificationService.isMuted('group', selectedGroup._id || selectedGroup.id) ? 'muted' : ''}`}
+                    onClick={() => {
+                      const groupId = selectedGroup._id || selectedGroup.id;
+                      if (notificationService.isMuted('group', groupId)) {
+                        notificationService.unmute('group', groupId);
+                      } else {
+                        notificationService.mute('group', groupId, selectedGroup.name);
+                      }
+                    }}
+                    title={notificationService.isMuted('group', selectedGroup._id || selectedGroup.id) ? "Unmute" : "Mute"}
+                  >
+                    {notificationService.isMuted('group', selectedGroup._id || selectedGroup.id) ? <BellOff size={20} /> : <Bell size={20} />}
                   </button>
-                ) : (
-                  <button className="join-btn" onClick={() => joinGroup(selectedGroup._id || selectedGroup.id)}>
-                    <LogIn size={16} /> Join
-                  </button>
+                )}
+                <button className="header-icon-btn" onClick={() => setShowOptions(!showOptions)} title="More">
+                  <MoreVertical size={20} />
+                </button>
+                {showOptions && (
+                  <div className="header-dropdown">
+                    <button onClick={() => {}}>Group Info</button>
+                    <button onClick={() => {}}>Search Messages</button>
+                    <button onClick={() => {}}>Media & Files</button>
+                    {isMember && (
+                      <button className="danger" onClick={() => leaveGroup(selectedGroup._id || selectedGroup.id)}>
+                        Leave Group
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
             </div>
@@ -435,6 +537,9 @@ export default function CommunityPage() {
                 </div>
 
                 <div className="chat-input-area msg-input-area">
+                  <button className="chat-action-btn attach" title="Attach file">
+                    <Paperclip size={20} />
+                  </button>
                   <div className="msg-input-wrapper">
                     <textarea
                       ref={msgInputRef}
@@ -442,13 +547,21 @@ export default function CommunityPage() {
                       value={msgInput}
                       onChange={(e) => setMsgInput(e.target.value)}
                       onKeyDown={handleKeyDown}
-                      placeholder="Type a message..."
+                      placeholder="Message..."
                       disabled={!isMember || loading}
                       rows={1}
                     />
+                    <button className="emoji-btn" title="Emoji">
+                      <Smile size={20} />
+                    </button>
                   </div>
-                  <button className="chat-action-btn send msg-send" type="button" onClick={sendMessage} disabled={loading || !isMember || !msgInput.trim()}>
-                    <Send size={20} />
+                  <button 
+                    className={`chat-action-btn send ${!msgInput.trim() ? 'has-text' : ''}`} 
+                    type="button" 
+                    onClick={sendMessage} 
+                    disabled={loading || !isMember || !msgInput.trim()}
+                  >
+                    {msgInput.trim() ? <Send size={20} /> : <Mic size={20} />}
                   </button>
                 </div>
               </>

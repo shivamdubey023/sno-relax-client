@@ -376,6 +376,53 @@
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 
+/* Muted List */
+.muted-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.muted-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background: var(--bg-tertiary);
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+}
+
+.muted-item span {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: clamp(0.8rem, 1.5vw, 0.9rem);
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.unmute-btn {
+  padding: 0.4rem 0.8rem;
+  background: var(--accent-primary);
+  color: var(--bg-primary);
+  border: none;
+  border-radius: 8px;
+  font-size: clamp(0.75rem, 1.3vw, 0.85rem);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.unmute-btn:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
 /* ============================
    Responsive Breakpoints
    ============================ */

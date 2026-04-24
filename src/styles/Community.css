@@ -1,6 +1,21 @@
 /* ============================
-   WhatsApp Web Style Community Page
-   ============================ */
+    WhatsApp Web Style Community Page
+    ============================ */
+
+:root {
+  --wa-primary: #00ba82;
+  --wa-primary-dark: #00a170;
+  --wa-dark: #0b1015;
+  --wa-sidebar: #111a21;
+  --wa-border: #1f2c34;
+  --wa-hover: #1f2c34;
+  --wa-active: #2a3a47;
+  --wa-input: #1f2c34;
+  --wa-text: #eaeaea;
+  --wa-text-secondary: #8696a1;
+  --wa-outgoing: #00ba82;
+  --wa-incoming: #1f2c34;
+}
 
 .community-page {
   display: flex;
@@ -8,23 +23,23 @@
   height: 100svh;
   min-height: -webkit-fill-available;
   width: 100%;
-  background: #0b1015;
-  color: #eaeaea;
+  background: var(--wa-dark);
+  color: var(--wa-text);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   overflow: hidden;
 }
 
 /* ============================
-   Sidebar (WhatsApp Green Header Style)
-   ============================ */
+    Sidebar (WhatsApp Style)
+    ============================ */
 .community-sidebar {
   width: 380px;
   min-width: 380px;
-  background: #111a21;
+  background: var(--wa-sidebar);
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border-right: 1px solid #1f2c34;
+  border-right: 1px solid var(--wa-border);
 }
 
 @media (max-width: 768px) {
@@ -41,18 +56,19 @@
 
 .sidebar-header {
   padding: 12px 16px;
-  background: #111a21;
+  background: var(--wa-sidebar);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid #1f2c34;
+  border-bottom: 1px solid var(--wa-border);
+  min-height: 60px;
 }
 
 .sidebar-header h2 {
   margin: 0;
-  font-size: 1.1rem;
+  font-size: 1.3rem;
   font-weight: 600;
-  color: #eaeaea;
+  color: var(--wa-text);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -60,7 +76,7 @@
 
 .sidebar-actions {
   display: flex;
-  gap: 8px;
+  gap: 4px;
 }
 
 .create-btn,
@@ -75,51 +91,67 @@
   justify-content: center;
   transition: all 0.2s ease;
   background: transparent;
-  color: #8696a1;
+  color: var(--wa-text-secondary);
 }
 
 .create-btn:hover {
-  background: #37474f;
-}
-
-.close-sidebar {
-  background: #1f2c34;
-}
-
-.close-sidebar:hover {
-  background: #37474f;
+  background: var(--wa-hover);
 }
 
 /* ============================
-   Search Bar (WhatsApp Style)
-   ============================ */
+    Search Bar (WhatsApp Style)
+    ============================ */
 .sidebar-search {
   padding: 10px 16px;
-  background: #111a21;
+  background: var(--wa-sidebar);
+  border-bottom: 1px solid var(--wa-border);
 }
 
-.sidebar-search input {
-  width: 100%;
-  padding: 10px 14px;
+.search-wrapper {
+  display: flex;
+  align-items: center;
+  background: var(--wa-input);
   border-radius: 20px;
+  padding: 8px 14px;
+  gap: 10px;
+}
+
+.search-wrapper .search-icon {
+  color: var(--wa-text-secondary);
+  flex-shrink: 0;
+}
+
+.search-wrapper input {
+  flex: 1;
+  background: transparent;
   border: none;
-  background: #1f2c34;
-  color: #eaeaea;
+  color: var(--wa-text);
   font-size: 14px;
   outline: none;
 }
 
-.sidebar-search input:focus {
-  background: #2f3b47;
+.search-wrapper input::placeholder {
+  color: var(--wa-text-secondary);
 }
 
-.sidebar-search input::placeholder {
-  color: #8696a1;
+.clear-search {
+  background: none;
+  border: none;
+  color: var(--wa-text-secondary);
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.clear-search:hover {
+  color: var(--wa-text);
 }
 
 /* ============================
-   Groups List (WhatsApp List Style)
-   ============================ */
+    Groups List (WhatsApp Chat List)
+    ============================ */
 .groups-list {
   flex: 1;
   overflow-y: auto;
@@ -135,40 +167,67 @@
 }
 
 .groups-list::-webkit-scrollbar-thumb {
-  background: #37474f;
+  background: var(--wa-hover);
   border-radius: 3px;
 }
 
 /* ============================
-   Empty Groups
-   ============================ */
+    Empty Groups
+    ============================ */
 .empty-groups {
   text-align: center;
-  padding: 3rem 1rem;
-  color: #8696a1;
+  padding: 3rem 1.5rem;
+  color: var(--wa-text-secondary);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .empty-groups svg {
-  opacity: 0.5;
-  margin-bottom: 1rem;
+  opacity: 0.4;
+  margin-bottom: 0.5rem;
+  color: var(--wa-text-secondary);
 }
 
 .empty-groups p {
-  margin: 0 0 0.25rem;
+  margin: 0;
   font-weight: 600;
+  font-size: 1rem;
+  color: var(--wa-text);
 }
 
 .empty-groups span {
   font-size: 0.85rem;
 }
 
+.create-group-btn {
+  margin-top: 1rem;
+  padding: 10px 20px;
+  background: var(--wa-primary);
+  color: white;
+  border: none;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.2s ease;
+}
+
+.create-group-btn:hover {
+  background: var(--wa-primary-dark);
+}
+
 /* ============================
-   Group Item (WhatsApp Chat List Style)
-   ============================ */
+    Group Item (WhatsApp Chat Item)
+    ============================ */
 .group-item {
   padding: 12px 16px;
   cursor: pointer;
-  border-bottom: 1px solid #1f2c34;
+  border-bottom: 1px solid var(--wa-border);
   transition: background 0.2s ease;
   display: flex;
   align-items: center;
@@ -177,18 +236,22 @@
 }
 
 .group-item:hover {
-  background: #1f2c34;
+  background: var(--wa-hover);
 }
 
 .group-item.active {
-  background: #2a3a47;
+  background: var(--wa-active);
+}
+
+.group-item.muted-group {
+  opacity: 0.6;
 }
 
 .group-avatar {
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #00ba82, #00a170);
+  background: linear-gradient(135deg, var(--wa-primary), var(--wa-primary-dark));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -204,27 +267,31 @@
   overflow: hidden;
 }
 
-.group-info h4 {
-  margin: 0 0 4px;
-  font-size: 15px;
-  font-weight: 500;
-  color: #eaeaea;
+.group-info-header {
   display: flex;
   align-items: center;
   gap: 6px;
+}
+
+.group-info h4 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--wa-text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.group-item.active .group-info h4 {
-  color: #eaeaea;
+.muted-icon {
+  color: var(--wa-text-secondary);
+  flex-shrink: 0;
 }
 
-.group-info p {
-  margin: 0;
-  font-size: 13px;
-  color: #8696a1;
+.group-preview {
+  margin: 2px 0 0;
+  font-size: 0.85rem;
+  color: var(--wa-text-secondary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -235,17 +302,13 @@
   flex-direction: column;
   align-items: flex-end;
   gap: 4px;
-}
-
-.group-time {
-  font-size: 11px;
-  color: #8696a1;
+  flex-shrink: 0;
 }
 
 .group-unread {
-  background: #00ba82;
+  background: var(--wa-primary);
   color: white;
-  font-size: 11px;
+  font-size: 0.7rem;
   font-weight: 600;
   padding: 2px 8px;
   border-radius: 10px;
@@ -254,13 +317,13 @@
 }
 
 /* ============================
-   Mobile Topbar
-   ============================ */
+    Mobile Topbar
+    ============================ */
 .community-topbar {
   display: none;
   padding: 12px 16px;
-  background: #111a21;
-  border-bottom: 1px solid #1f2c34;
+  background: var(--wa-sidebar);
+  border-bottom: 1px solid var(--wa-border);
 }
 
 @media (max-width: 768px) {
@@ -276,7 +339,7 @@
   border-radius: 50%;
   border: none;
   background: transparent;
-  color: #8696a1;
+  color: var(--wa-text-secondary);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -284,17 +347,17 @@
 }
 
 .hamburger:hover {
-  background: #1f2c34;
+  background: var(--wa-hover);
 }
 
 /* ============================
-   Chat Area
-   ============================ */
+    Chat Area
+    ============================ */
 .community-main {
   flex: 1;
   display: flex;
   flex-direction: column;
-  background: #0b1015;
+  background: var(--wa-dark);
   min-width: 0;
 }
 
@@ -304,18 +367,19 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: #8696a1;
+  color: var(--wa-text-secondary);
   gap: 1rem;
+  padding: 2rem;
 }
 
 .no-selection svg {
-  opacity: 0.5;
+  opacity: 0.3;
 }
 
 .no-selection h3 {
   margin: 0;
   font-size: 1.4rem;
-  color: #eaeaea;
+  color: var(--wa-text);
 }
 
 .no-selection p {
@@ -324,16 +388,52 @@
 }
 
 /* ============================
-   Chat Header
-   ============================ */
+    Chat Header (WhatsApp Style)
+    ============================ */
 .chat-header-comm {
-  padding: 12px 16px;
-  background: #111a21;
+  padding: 10px 16px;
+  background: var(--wa-sidebar);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid #1f2c34;
+  border-bottom: 1px solid var(--wa-border);
   min-height: 60px;
+  position: relative;
+}
+
+.chat-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.back-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--wa-text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.back-btn:hover {
+  background: var(--wa-hover);
+}
+
+.chat-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--wa-primary), var(--wa-primary-dark));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
 }
 
 .chat-info {
@@ -342,27 +442,29 @@
 }
 
 .chat-info h3 {
-  margin: 0 0 4px;
-  font-size: 15px;
+  margin: 0;
+  font-size: 1rem;
   font-weight: 600;
-  color: #eaeaea;
-  display: flex;
-  align-items: center;
-  gap: 6px;
+  color: var(--wa-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.chat-info p {
-  margin: 0;
-  font-size: 13px;
-  color: #8696a1;
+.chat-status {
+  margin: 2px 0 0;
+  font-size: 0.8rem;
+  color: var(--wa-text-secondary);
 }
 
 .header-actions {
   display: flex;
-  gap: 8px;
+  align-items: center;
+  gap: 4px;
+  position: relative;
 }
 
-.header-actions button {
+.header-icon-btn {
   width: 40px;
   height: 40px;
   border-radius: 50%;
@@ -373,48 +475,59 @@
   justify-content: center;
   transition: all 0.2s ease;
   background: transparent;
-  color: #8696a1;
+  color: var(--wa-text-secondary);
 }
 
-.header-actions button:hover {
-  background: #1f2c34;
+.header-icon-btn:hover {
+  background: var(--wa-hover);
 }
 
-.leave-btn, .join-btn {
-  width: auto;
-  height: 36px;
-  padding: 0 16px;
-  border-radius: 18px;
-  font-size: 13px;
-  font-weight: 600;
-  gap: 6px;
+.header-icon-btn.muted {
+  color: #ff6b6b;
 }
 
-.join-btn {
-  background: #00ba82;
-  color: white;
+.header-dropdown {
+  position: absolute;
+  top: 50px;
+  right: 0;
+  background: var(--wa-active);
+  border-radius: 8px;
+  padding: 8px 0;
+  min-width: 180px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  z-index: 100;
 }
 
-.join-btn:hover {
-  background: #00a170;
+.header-dropdown button {
+  width: 100%;
+  padding: 10px 16px;
+  border: none;
+  background: none;
+  color: var(--wa-text);
+  font-size: 0.9rem;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-.leave-btn {
-  background: #37474f;
-  color: #eaeaea;
+.header-dropdown button:hover {
+  background: var(--wa-hover);
 }
 
-.leave-btn:hover {
-  background: #4b5a63;
+.header-dropdown button.danger {
+  color: #ff6b6b;
 }
 
 /* ============================
-   Messages Container (WhatsApp Style)
-   ============================ */
+    Messages Container
+    ============================ */
 .chat-scroll-container {
   flex: 1;
   overflow: hidden;
   position: relative;
+  background: var(--wa-dark);
 }
 
 .chat-messages, .messages-container {
@@ -423,7 +536,7 @@
   padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 2px;
 }
 
 .chat-empty {
@@ -432,21 +545,22 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: #8696a1;
-  gap: 1rem;
+  color: var(--wa-text-secondary);
+  gap: 0.5rem;
 }
 
 .chat-empty svg {
-  opacity: 0.4;
+  opacity: 0.3;
 }
 
 /* ============================
-   Message Bubbles (WhatsApp Style)
-   ============================ */
+    Message Bubbles (WhatsApp Style)
+    ============================ */
 .message-row {
   display: flex;
   flex-direction: column;
-  max-width: 80%;
+  max-width: 75%;
+  padding: 2px 0;
 }
 
 .message-row.sent {
@@ -461,32 +575,32 @@
   padding: 8px 12px;
   border-radius: 8px;
   position: relative;
+  word-wrap: break-word;
 }
 
 .message-row.sent .message-bubble {
-  background: #00ba82;
+  background: var(--wa-outgoing);
   color: white;
   border-top-right-radius: 2px;
 }
 
 .message-row.received .message-bubble {
-  background: #1f2c34;
-  color: #eaeaea;
+  background: var(--wa-incoming);
+  color: var(--wa-text);
   border-top-left-radius: 2px;
 }
 
 .message-sender {
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 600;
-  color: #00ba82;
+  color: var(--wa-primary);
   margin-bottom: 4px;
 }
 
 .message-text {
   margin: 0;
-  font-size: 14px;
+  font-size: 0.95rem;
   line-height: 1.4;
-  word-wrap: break-word;
 }
 
 .message-meta {
@@ -495,53 +609,47 @@
   justify-content: flex-end;
   gap: 4px;
   margin-top: 4px;
-  font-size: 11px;
+  font-size: 0.7rem;
 }
 
 .message-row.sent .message-meta {
-  color: rgba(255,255,255,0.7);
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .message-row.received .message-meta {
-  color: #8696a1;
-}
-
-.message-time {
-  font-size: 11px;
-}
-
-.edited {
-  font-style: italic;
-  font-size: 10px;
-  opacity: 0.7;
+  color: var(--wa-text-secondary);
 }
 
 .message-status {
-  margin-left: 4px;
+  font-size: 0.8rem;
+}
+
+.message-status.read {
+  color: #53bdeb;
 }
 
 /* ============================
-   Scroll Buttons
-   ============================ */
+    Scroll Buttons
+    ============================ */
 .chat-scroll-btn {
   position: absolute;
   width: 36px;
   height: 36px;
   border-radius: 50%;
   border: none;
-  background: #37474f;
-  color: #eaeaea;
+  background: var(--wa-hover);
+  color: var(--wa-text);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   z-index: 10;
   transition: all 0.2s ease;
 }
 
 .chat-scroll-btn:hover {
-  background: #4b5a63;
+  background: var(--wa-active);
 }
 
 .chat-scroll-btn.scroll-down {
@@ -560,32 +668,33 @@
 }
 
 /* ============================
-   Chat Input (WhatsApp Style)
-   ============================ */
+    Chat Input (WhatsApp Style)
+    ============================ */
 .chat-input-area {
-  padding: 12px 16px;
-  background: #111a21;
+  padding: 10px 16px;
+  background: var(--wa-sidebar);
   display: flex;
   align-items: flex-end;
   gap: 10px;
-  border-top: 1px solid #1f2c34;
+  border-top: 1px solid var(--wa-border);
 }
 
 .msg-input-wrapper {
   flex: 1;
-  background: #1f2c34;
+  background: var(--wa-input);
   border-radius: 24px;
   padding: 8px 16px;
   display: flex;
   align-items: center;
+  gap: 8px;
 }
 
 .chat-input {
   flex: 1;
   background: transparent;
   border: none;
-  color: #eaeaea;
-  font-size: 14px;
+  color: var(--wa-text);
+  font-size: 0.95rem;
   outline: none;
   resize: none;
   min-height: 24px;
@@ -594,7 +703,21 @@
 }
 
 .chat-input::placeholder {
-  color: #8696a1;
+  color: var(--wa-text-secondary);
+}
+
+.emoji-btn {
+  background: none;
+  border: none;
+  color: var(--wa-text-secondary);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+}
+
+.emoji-btn:hover {
+  color: var(--wa-text);
 }
 
 .chat-action-btn {
@@ -607,26 +730,44 @@
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.chat-action-btn.attach {
+  background: transparent;
+  color: var(--wa-text-secondary);
+}
+
+.chat-action-btn.attach:hover {
+  background: var(--wa-hover);
 }
 
 .send {
-  background: #00ba82;
+  background: var(--wa-primary);
   color: white;
 }
 
 .send:hover:not(:disabled) {
-  background: #00a170;
+  background: var(--wa-primary-dark);
 }
 
 .send:disabled {
-  background: #37474f;
-  color: #8696a1;
+  background: var(--wa-hover);
+  color: var(--wa-text-secondary);
   cursor: not-allowed;
 }
 
+.send.has-text {
+  background: transparent;
+}
+
+.send.has-text:hover {
+  background: var(--wa-hover);
+}
+
 /* ============================
-   Join Prompt
-   ============================ */
+    Join Prompt
+    ============================ */
 .join-prompt {
   flex: 1;
   display: flex;
@@ -634,33 +775,28 @@
   align-items: center;
   justify-content: center;
   gap: 1rem;
-  color: #8696a1;
+  color: var(--wa-text-secondary);
   padding: 2rem;
 }
 
 .join-prompt svg {
-  opacity: 0.5;
+  opacity: 0.4;
 }
 
 .join-prompt h3 {
   margin: 0;
-  color: #eaeaea;
+  color: var(--wa-text);
 }
 
 .join-prompt p {
   margin: 0;
   text-align: center;
-}
-
-.join-btn.large {
-  width: auto;
-  padding: 12px 24px;
-  font-size: 15px;
+  max-width: 280px;
 }
 
 /* ============================
-   Create Modal (WhatsApp Style)
-   ============================ */
+    Create Modal (WhatsApp Style)
+    ============================ */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -675,7 +811,7 @@
 }
 
 .modal-content {
-  background: #1f2c34;
+  background: var(--wa-active);
   border-radius: 8px;
   width: 90%;
   max-width: 400px;
@@ -692,7 +828,7 @@
 
 .modal-header h3 {
   margin: 0;
-  color: #eaeaea;
+  color: var(--wa-text);
   font-size: 1.2rem;
 }
 
@@ -702,12 +838,12 @@
   border-radius: 50%;
   border: none;
   background: transparent;
-  color: #8696a1;
+  color: var(--wa-text-secondary);
   cursor: pointer;
 }
 
 .modal-close:hover {
-  background: #37474f;
+  background: var(--wa-hover);
 }
 
 .modal-content input,
@@ -716,21 +852,21 @@
   padding: 12px 14px;
   border-radius: 8px;
   border: none;
-  background: #2f3b47;
-  color: #eaeaea;
-  font-size: 14px;
+  background: var(--wa-input);
+  color: var(--wa-text);
+  font-size: 0.95rem;
   margin-bottom: 12px;
   outline: none;
 }
 
 .modal-content input:focus,
 .modal-content textarea:focus {
-  background: #37474f;
+  background: var(--wa-hover);
 }
 
 .modal-content input::placeholder,
 .modal-content textarea::placeholder {
-  color: #8696a1;
+  color: var(--wa-text-secondary);
 }
 
 .modal-content textarea {
@@ -743,15 +879,15 @@
   align-items: center;
   gap: 10px;
   margin-bottom: 16px;
-  color: #eaeaea;
-  font-size: 14px;
+  color: var(--wa-text);
+  font-size: 0.9rem;
   cursor: pointer;
 }
 
 .checkbox-label input {
-  width: 18px;
-  height: 18px;
-  margin: 0;
+  width: 20px;
+  height: 20px;
+  accent-color: var(--wa-primary);
 }
 
 .modal-buttons {
@@ -765,32 +901,32 @@
   border-radius: 20px;
   border: none;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 0.9rem;
   font-weight: 600;
   transition: all 0.2s ease;
 }
 
 .modal-buttons button:first-child {
   background: transparent;
-  color: #8696a1;
+  color: var(--wa-text-secondary);
 }
 
 .modal-buttons button:first-child:hover {
-  background: #37474f;
+  background: var(--wa-hover);
 }
 
 .modal-buttons .btn-primary {
-  background: #00ba82;
+  background: var(--wa-primary);
   color: white;
 }
 
 .modal-buttons .btn-primary:hover {
-  background: #00a170;
+  background: var(--wa-primary-dark);
 }
 
 /* ============================
-   Violation Modal
-   ============================ */
+    Violation Modal
+    ============================ */
 .violation-modal {
   position: fixed;
   top: 0;
@@ -805,7 +941,7 @@
 }
 
 .violation-content {
-  background: #1f2c34;
+  background: var(--wa-active);
   border-radius: 8px;
   width: 90%;
   max-width: 360px;
@@ -815,17 +951,18 @@
 
 .violation-content h2 {
   margin: 0 0 12px;
-  color: #eaeaea;
+  color: var(--wa-text);
+  font-size: 1.2rem;
 }
 
 .violation-content p {
-  color: #8696a1;
+  color: var(--wa-text-secondary);
   margin: 0 0 16px;
 }
 
 .violation-content ul {
   text-align: left;
-  color: #8696a1;
+  color: var(--wa-text-secondary);
   padding-left: 20px;
   margin: 0 0 20px;
 }
@@ -839,26 +976,26 @@
   padding: 12px 24px;
   border-radius: 24px;
   border: none;
-  background: #00ba82;
+  background: var(--wa-primary);
   color: white;
-  font-size: 15px;
+  font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.2s ease;
 }
 
 .violation-content button:hover {
-  background: #00a170;
+  background: var(--wa-primary-dark);
 }
 
 /* ============================
-   Theme Picker
-   ============================ */
+    Theme Picker
+    ============================ */
 .chat-theme-picker {
-  position: fixed;
+  position: absolute;
   top: 70px;
   right: 16px;
-  background: #1f2c34;
+  background: var(--wa-active);
   border-radius: 8px;
   padding: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
@@ -866,8 +1003,8 @@
 }
 
 .chat-theme-picker-title {
-  font-size: 12px;
-  color: #8696a1;
+  font-size: 0.75rem;
+  color: var(--wa-text-secondary);
   margin-bottom: 8px;
 }
 
@@ -879,8 +1016,8 @@
 }
 
 .chat-theme-btn {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   border: 2px solid transparent;
   cursor: pointer;
@@ -892,6 +1029,70 @@
 }
 
 .chat-theme-btn.active {
-  border-color: #00ba82;
+  border-color: var(--wa-primary);
   box-shadow: 0 0 8px rgba(0, 255, 102, 0.4);
+}
+
+.leave-btn.muted {
+  background: #4a2525;
+  color: #ff6b6b;
+}
+
+.leave-btn.muted:hover {
+  background: #5a3030;
+}
+
+/* ============================
+    Date Divider
+    ============================ */
+.date-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 16px 0;
+}
+
+.date-divider span {
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--wa-text-secondary);
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 0.75rem;
+}
+
+/* ============================
+    Responsive
+    ============================ */
+@media (max-width: 768px) {
+  .community-sidebar {
+    width: 100%;
+  }
+  
+  .message-row {
+    max-width: 85%;
+  }
+  
+  .chat-header-left {
+    gap: 8px;
+  }
+  
+  .chat-avatar {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .header-dropdown {
+    right: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .sidebar-header h2 span {
+    display: none;
+  }
+  
+  .group-avatar {
+    width: 44px;
+    height: 44px;
+  }
 }

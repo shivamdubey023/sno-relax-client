@@ -1,12 +1,30 @@
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Moon, Sun, Palette, Image, Check } from "lucide-react";
+import { Moon, Sun, Palette, Image, Check, Bell, BellOff, Volume2, VolumeX, MessageSquare, Users } from "lucide-react";
 import { ThemeContext } from "../context/ThemeContext";
 import BackButton from "../components/BackButton";
 import "../styles/Settings.css";
 
 export default function Settings() {
   const navigate = useNavigate();
+  const [notificationsEnabled, setNotificationsEnabled] = useState(
+    localStorage.getItem("notificationsEnabled") !== "false"
+  );
+  const [soundEnabled, setSoundEnabled] = useState(
+    localStorage.getItem("soundEnabled") !== "false"
+  );
+  const [popupEnabled, setPopupEnabled] = useState(
+    localStorage.getItem("popupEnabled") !== "false"
+  );
+  const [vibrateEnabled, setVibrateEnabled] = useState(
+    localStorage.getItem("vibrateEnabled") !== "false"
+  );
+  const [groupMutes, setGroupMutes] = useState(
+    JSON.parse(localStorage.getItem("groupMutes") || "{}")
+  );
+  const [userMutes, setUserMutes] = useState(
+    JSON.parse(localStorage.getItem("userMutes") || "{}")
+  );
 
   const {
     theme,
@@ -35,6 +53,51 @@ export default function Settings() {
       { id: "brand", name: "Brand", icon: Palette, gradient: "linear-gradient(135deg, #0b2740, #00FF66)" }
     );
   }
+
+  const handleNotificationChange = (key, value) => {
+    localStorage.setItem(key, String(value));
+    switch (key) {
+      case "notificationsEnabled":
+        if (value) {
+          Notification.requestPermission().then(perm => {
+            if (perm !== "granted") {
+              setNotificationsEnabled(false);
+              localStorage.setItem("notificationsEnabled", "false");
+            }
+          });
+        }
+        setNotificationsEnabled(value);
+        break;
+      case "soundEnabled":
+        setSoundEnabled(value);
+        break;
+      case "popupEnabled":
+        setPopupEnabled(value);
+        break;
+      case "vibrateEnabled":
+        setVibrateEnabled(value);
+        break;
+      default:
+        break;
+    }
+  };
+
+  const clearUserMute = (userId) => {
+    const updated = { ...userMutes };
+    delete updated[userId];
+    setUserMutes(updated);
+    localStorage.setItem("userMutes", JSON.stringify(updated));
+  };
+
+  const clearGroupMute = (groupId) => {
+    const updated = { ...groupMutes };
+    delete updated[groupId];
+    setGroupMutes(updated);
+    localStorage.setItem("groupMutes", JSON.stringify(updated));
+  };
+
+  const mutedUsers = Object.keys(userMutes);
+  const mutedGroups = Object.keys(groupMutes);
 
   return (
     <div className="settings-container">
@@ -196,6 +259,103 @@ export default function Settings() {
             </label>
           </div>
         </div>
+
+        {/* Notification Settings */}
+        <div className="settings-section">
+          <div className="section-header">
+            <Bell size={24} />
+            <h2>Notifications</h2>
+          </div>
+          <p className="section-desc">Control how you receive alerts</p>
+
+          <div className="setting-item">
+            <label>
+              <input
+                type="checkbox"
+                checked={notificationsEnabled}
+                onChange={(e) => handleNotificationChange("notificationsEnabled", e.target.checked)}
+              />
+              <span>Push Notifications</span>
+            </label>
+          </div>
+
+          <div className="setting-item">
+            <label>
+              <input
+                type="checkbox"
+                checked={soundEnabled}
+                onChange={(e) => handleNotificationChange("soundEnabled", e.target.checked)}
+              />
+              <span>{soundEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />} Sound Alert</span>
+            </label>
+          </div>
+
+          <div className="setting-item">
+            <label>
+              <input
+                type="checkbox"
+                checked={popupEnabled}
+                onChange={(e) => handleNotificationChange("popupEnabled", e.target.checked)}
+              />
+              <span>Popup Message Alert</span>
+            </label>
+          </div>
+
+          <div className="setting-item">
+            <label>
+              <input
+                type="checkbox"
+                checked={vibrateEnabled}
+                onChange={(e) => handleNotificationChange("vibrateEnabled", e.target.checked)}
+              />
+              <span>Vibrate (Mobile)</span>
+            </label>
+          </div>
+        </div>
+
+        {/* Muted Groups */}
+        {mutedGroups.length > 0 && (
+          <div className="settings-section">
+            <div className="section-header">
+              <BellOff size={24} />
+              <h2>Muted Groups</h2>
+            </div>
+            <p className="section-desc">Groups with notifications silenced</p>
+
+            <div className="muted-list">
+              {mutedGroups.map(groupId => (
+                <div key={groupId} className="muted-item">
+                  <span><Users size={14} /> {groupMutes[groupId] || groupId}</span>
+                  <button onClick={() => clearGroupMute(groupId)} className="unmute-btn">
+                    Unmute
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Muted Users */}
+        {mutedUsers.length > 0 && (
+          <div className="settings-section">
+            <div className="section-header">
+              <MessageSquare size={24} />
+              <h2>Muted Users</h2>
+            </div>
+            <p className="section-desc">Users with notifications silenced</p>
+
+            <div className="muted-list">
+              {mutedUsers.map(userId => (
+                <div key={userId} className="muted-item">
+                  <span>{userMutes[userId] || userId}</span>
+                  <button onClick={() => clearUserMute(userId)} className="unmute-btn">
+                    Unmute
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* About Section */}
         <div className="settings-section">
